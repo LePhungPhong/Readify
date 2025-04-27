@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:readify/views/book_by_category.dart';
-import '../controllers/book_controller.dart';
-import '../controllers/local_book_controller.dart';
-import '../models/book_model.dart';
+import 'package:readify/views/danhmuc/book_by_category.dart';
+import '../../controllers/book_controller.dart';
+import '../../controllers/local_book_controller.dart';
+import '../../models/book_model.dart';
 
 class BookListView extends StatefulWidget {
   @override
