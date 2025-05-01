@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:do_an_mobile/database/db_helper.dart';
+import 'package:readify/database/db_helper.dart';
 import 'dart:async';
 
 class ReadingPage extends StatefulWidget {
