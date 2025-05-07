@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:readify/read_book.dart';
+import 'package:readify/views/docsachs/read_book.dart';
 
 class BookDetailPage extends StatelessWidget {
   final int bookId;

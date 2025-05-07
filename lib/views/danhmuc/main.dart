@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'views/home_view.dart';
+import 'package:readify/views/danhmuc/home_view.dart';
 
 void main() {
   runApp(
