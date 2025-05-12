@@ -167,4 +167,41 @@ Bạn có thể đọc offline mà không cần tải về từ internet.''',
     }
     return null;
   }
+
+  // lay id
+  Future<Map<String, dynamic>?> getUserById(int userId) async {
+    final dbClient = await db;
+    final result = await dbClient.query(
+      'Users',
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
+  }
+
+  Future<List<Map<String, dynamic>>> getReadingHistory(int userId) async {
+    final dbClient = await db;
+
+    final result = await dbClient.rawQuery(
+      '''
+    SELECT 
+      Books.title,
+      Books.author,
+      Library.added_at,
+      ReadingStatus.current_page,
+      ReadingStatus.is_bookmarked
+    FROM Library
+    JOIN Books ON Library.book_id = Books.id
+    LEFT JOIN ReadingStatus ON Books.id = ReadingStatus.book_id
+    WHERE Library.user_id = ?
+    ORDER BY Library.added_at DESC
+  ''',
+      [userId],
+    );
+
+    return result;
+  }
 }
