@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:readify/controllers/Phong/AuthService.dart';
+import 'package:readify/views/danhmuc/home_view.dart';
+//import 'package:readify/models/Phong/user_model.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -9,7 +12,47 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+
   bool _obscureText = true;
+  bool _isLoading = false;
+
+  void _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập đầy đủ email và mật khẩu')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final user = await _authService.login(email, password);
+
+    setState(() => _isLoading = false);
+
+    if (user != null) {
+      // Đăng nhập thành công
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Xin chào, ${user.name}!')));
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeView()),
+      );
+    } else {
+      // Sai thông tin đăng nhập
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email hoặc mật khẩu không đúng')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +71,7 @@ class _LoginState extends State<Login> {
         ),
         centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -47,9 +90,9 @@ class _LoginState extends State<Login> {
             ),
             const SizedBox(height: 30),
 
-            /// Username
+            // Email
             Text(
-              'Username',
+              'Email',
               style: GoogleFonts.roboto(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -57,9 +100,11 @@ class _LoginState extends State<Login> {
             ),
             const SizedBox(height: 8),
             TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                hintText: "Nhập tên người dùng",
-                prefixIcon: const Icon(Icons.person),
+                hintText: "Nhập email",
+                prefixIcon: const Icon(Icons.email),
                 filled: true,
                 fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
@@ -75,7 +120,7 @@ class _LoginState extends State<Login> {
             ),
             const SizedBox(height: 20),
 
-            /// Password
+            // Password
             Text(
               'Password',
               style: GoogleFonts.roboto(
@@ -85,6 +130,7 @@ class _LoginState extends State<Login> {
             ),
             const SizedBox(height: 8),
             TextFormField(
+              controller: _passwordController,
               obscureText: _obscureText,
               decoration: InputDecoration(
                 hintText: "Nhập mật khẩu",
@@ -111,11 +157,13 @@ class _LoginState extends State<Login> {
 
             const SizedBox(height: 12),
 
-            /// Forgot password
+            // Forgot password
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {}, // TODO: Forgot password action
+                onPressed: () {
+                  // TODO: Forgot password action
+                },
                 child: Text(
                   "Quên mật khẩu?",
                   style: GoogleFonts.roboto(
@@ -128,14 +176,12 @@ class _LoginState extends State<Login> {
 
             const SizedBox(height: 30),
 
-            /// Login Button
+            // Login Button
             Center(
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Handle login logic
-                  },
+                  onPressed: _isLoading ? null : _handleLogin,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     backgroundColor: const Color.fromARGB(255, 189, 90, 90),
@@ -144,14 +190,17 @@ class _LoginState extends State<Login> {
                     ),
                     elevation: 3,
                   ),
-                  child: Text(
-                    "Login",
-                    style: GoogleFonts.roboto(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child:
+                      _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                            "Login",
+                            style: GoogleFonts.roboto(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                 ),
               ),
             ),

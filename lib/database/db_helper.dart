@@ -1,5 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:readify/models/Phong/user_model.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 class AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
@@ -203,5 +206,88 @@ Bạn có thể đọc offline mà không cần tải về từ internet.''',
     );
 
     return result;
+  }
+
+  Future<void> registerUser(
+    String email,
+    String password,
+    String name,
+    String avatarUrl,
+  ) async {
+    final dbClient = await db;
+    await dbClient.insert(
+      'Users',
+      {
+        'email': email,
+        'password': password, // Hãy nhớ mã hóa mật khẩu trước khi lưu
+        'name': name,
+        'avatar_url': avatarUrl,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace, // Thay thế nếu có trùng lặp
+    );
+  }
+
+  String hashPassword(String password) {
+    final bytes = utf8.encode(password); // Chuyển mật khẩu thành bytes
+    final digest = sha256.convert(bytes); // Mã hóa bằng SHA256
+    return digest.toString();
+  }
+
+  Future<bool> validateUser(String email, String password) async {
+    final dbClient = await db;
+    final result = await dbClient.query(
+      'Users',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+
+    if (result.isNotEmpty) {
+      final storedPassword = result.first['password'] as String;
+      return storedPassword == hashPassword(password);
+    }
+    return false;
+  }
+
+  Future<String?> registerUserSecure({
+    required String email,
+    required String password,
+    required String name,
+    required String avatarUrl,
+  }) async {
+    final dbClient = await db;
+
+    // Kiểm tra email đã tồn tại chưa
+    final existingUser = await dbClient.query(
+      'Users',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+
+    if (existingUser.isNotEmpty) {
+      return 'Email đã tồn tại.';
+    }
+
+    final hashedPassword = hashPassword(password);
+
+    try {
+      await dbClient.insert('Users', {
+        'email': email,
+        'password': hashedPassword,
+        'name': name,
+        'avatar_url': avatarUrl,
+      }, conflictAlgorithm: ConflictAlgorithm.abort);
+      return null; // Đăng ký thành công, không có lỗi
+    } catch (e) {
+      return 'Đăng ký thất bại: $e';
+    }
+  }
+
+  Future<List<UserModel>> getAllUsers() async {
+    final dbClient = await db;
+
+    final result = await dbClient.query('Users'); // Lấy tất cả người dùng
+
+    // Chuyển đổi kết quả từ dạng map thành danh sách các đối tượng UserModel
+    return result.map((e) => UserModel.fromMap(e)).toList();
   }
 }
