@@ -153,7 +153,7 @@ class _BookListViewState extends State<BookListView> {
                                     Text(
                                       book.title ?? 'Không có tiêu đề',
                                       textAlign: TextAlign.center,
-                                      maxLines: 2,
+                                      maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w600,
