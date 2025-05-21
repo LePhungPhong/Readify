@@ -16,6 +16,7 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
   final ScrollController _scrollController = ScrollController();
   List<Book> _books = [];
   bool _isLoadingMore = false;
+  bool _isLoading = true;
   bool _hasMore = true;
 
   @override
@@ -35,6 +36,10 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
   }
 
   Future<void> _loadBooks() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
       final books = await _controller.getBooksByCategory(widget.topic);
       if (mounted) {
@@ -42,11 +47,14 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
         setState(() {
           _books = books;
           _hasMore = _controller.nextUrl != null;
+          _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        // Kiểm tra trước khi sử dụng context
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error loading books: $e')));
@@ -93,151 +101,159 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        controller: _scrollController,
-        slivers: [
-          // Header với hình nền và tiêu đề
-          SliverAppBar(
-            expandedHeight: 200,
-            floating: false,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                widget.topic.toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              centerTitle: true,
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/categories/${widget.topic}.jpg',
-                    fit: BoxFit.cover,
-                    errorBuilder:
-                        (context, error, stackTrace) => Container(
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.broken_image, size: 48),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  // Header với hình nền và tiêu đề
+                  SliverAppBar(
+                    expandedHeight: 200,
+                    floating: false,
+                    pinned: true,
+                    flexibleSpace: FlexibleSpaceBar(
+                      title: Text(
+                        widget.topic.toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
                         ),
-                  ),
-                  Container(color: Colors.black.withOpacity(0.4)),
-                ],
-              ),
-            ),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.search, color: Colors.white),
-                onPressed: () {
-                  // Xử lý tìm kiếm
-                },
-              ),
-            ],
-          ),
-          // Nội dung chính
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Tiêu đề "Sách (tổng số sách)"
-                  Text(
-                    'Sách (${_controller.totalCount ?? 0})',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFFBD5A5A),
+                      ),
+                      centerTitle: true,
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.asset(
+                            'assets/categories/${widget.topic}.jpg',
+                            fit: BoxFit.cover,
+                            errorBuilder:
+                                (context, error, stackTrace) => Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.broken_image,
+                                    size: 48,
+                                  ),
+                                ),
+                          ),
+                          Container(color: Colors.black.withOpacity(0.4)),
+                        ],
+                      ),
                     ),
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.search, color: Colors.white),
+                        onPressed: () {
+                          // Xử lý tìm kiếm
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  // Danh sách sách dạng lưới 2 cột
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.55,
-                        ),
-                    itemCount: _books.length,
-                    itemBuilder: (context, index) {
-                      final book = _books[index];
-                      return Column(
+                  // Nội dung chính
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                book.coverUrl ?? '',
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                errorBuilder:
-                                    (context, error, stackTrace) => Container(
-                                      color: Colors.grey[300],
-                                      child: const Icon(
-                                        Icons.broken_image,
-                                        size: 48,
-                                        color: Colors.grey,
+                          // Tiêu đề "Sách (tổng số sách)"
+                          Text(
+                            'Sách (${_controller.totalCount ?? 0})',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFBD5A5A),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Danh sách sách dạng lưới 2 cột
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                  childAspectRatio: 0.55,
+                                ),
+                            itemCount: _books.length,
+                            itemBuilder: (context, index) {
+                              final book = _books[index];
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        book.coverUrl ?? '',
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Container(
+                                                  color: Colors.grey[300],
+                                                  child: const Icon(
+                                                    Icons.broken_image,
+                                                    size: 48,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
                                       ),
                                     ),
-                              ),
-                            ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    book.title ?? 'Không có tiêu đề',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    book.authors.isNotEmpty
+                                        ? book.authors[0].name ??
+                                            'Tác giả không rõ'
+                                        : 'Tác giả không rõ',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              );
+                            },
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            book.title ?? 'Không có tiêu đề',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                          // Hiển thị loading indicator khi đang fetch thêm dữ liệu
+                          if (_isLoadingMore)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              child: Center(child: CircularProgressIndicator()),
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            book.authors.isNotEmpty
-                                ? book.authors[0].name ?? 'Tác giả không rõ'
-                                : 'Tác giả không rõ',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
+                          // Thông báo khi không còn dữ liệu để load
+                          if (!_hasMore && _books.isNotEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              child: Center(child: Text('Đã tải hết sách')),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
                         ],
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                  // Hiển thị loading indicator khi đang fetch thêm dữ liệu
-                  if (_isLoadingMore)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                  // Thông báo khi không còn dữ liệu để load
-                  if (!_hasMore && _books.isNotEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      child: Center(child: Text('Đã tải hết sách')),
-                    ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
