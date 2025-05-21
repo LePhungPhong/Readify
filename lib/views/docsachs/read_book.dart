@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:readify/database/db_helper.dart';
+import 'package:readify/services/book_service.dart';
 import 'dart:async';
+import 'package:http/http.dart' as http;
+
+Future<String> fetchBookText(String url) async {
+  try {
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      throw Exception('Failed to load book text');
+    }
+  } catch (e) {
+    throw Exception('Error fetching text: $e');
+  }
+}
 
 class ReadingPage extends StatefulWidget {
-  final int bookId;
-  const ReadingPage({super.key, required this.bookId});
+  final String bookUrl;
+
+  const ReadingPage({super.key, required this.bookUrl});
 
   @override
   State<ReadingPage> createState() => _ReadingPageState();
@@ -28,20 +44,13 @@ class _ReadingPageState extends State<ReadingPage> {
   }
 
   Future<void> _loadBook() async {
-    print("Loading book with ID: ${widget.bookId}");
-    final book = await AppDatabase().getBookById(widget.bookId);
-    print("BOOK FOUND: $book");
-
-    if (book == null || book['content'] == null) {
-      setState(() {
-        _isLoading = false;
-        pages = ['Không tìm thấy nội dung sách.'];
-      });
-      return;
+    try {
+      final content = await fetchBookText(widget.bookUrl);
+      pages = await _splitTextIntoPages(content, 3000);
+      print(widget.bookUrl);
+    } catch (e) {
+      pages = ['Không thể tải nội dung sách.\n$e'];
     }
-
-    final content = book['content'] as String;
-    pages = await _splitTextIntoPages(content, 3000);
 
     setState(() {
       _isLoading = false;
@@ -129,8 +138,8 @@ class _ReadingPageState extends State<ReadingPage> {
                 _isBookmarked = !_isBookmarked;
               });
 
-              await AppDatabase().saveReadingStatus(
-                widget.bookId,
+              await AppDatabase().saveReadingStatusByUrl(
+                widget.bookUrl,
                 _currentPage,
                 _isBookmarked,
               );
@@ -151,13 +160,12 @@ class _ReadingPageState extends State<ReadingPage> {
                           _currentPage = index;
                         });
 
-                        await AppDatabase().saveReadingStatus(
-                          widget.bookId,
+                        await AppDatabase().saveReadingStatusByUrl(
+                          widget.bookUrl,
                           _currentPage,
                           _isBookmarked,
                         );
                       },
-
                       itemCount: pages.length,
                       itemBuilder: (context, index) {
                         return SingleChildScrollView(
@@ -174,14 +182,18 @@ class _ReadingPageState extends State<ReadingPage> {
                       },
                     ),
                   ),
-                  Slider(
-                    min: 0,
-                    max: (pages.length - 1).toDouble(),
-                    value: _currentPage.toDouble(),
-                    onChanged: (value) {
-                      _goToPage(value / (pages.length - 1));
-                    },
-                  ),
+                  pages.isEmpty
+                      ? const SizedBox.shrink()
+                      : Slider(
+                        min: 0,
+                        max: (pages.length - 1).toDouble(),
+                        value:
+                            _currentPage.clamp(0, pages.length - 1).toDouble(),
+                        onChanged: (value) {
+                          _goToPage(value / (pages.length - 1));
+                        },
+                      ),
+
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(

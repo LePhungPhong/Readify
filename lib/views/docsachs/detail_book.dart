@@ -1,20 +1,54 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:readify/views/docsachs/read_book.dart';
+import 'package:readify/models/book_model.dart'; // Đảm bảo bạn có model Book
 
-class BookDetailPage extends StatelessWidget {
+class BookDetailPage extends StatefulWidget {
   final int bookId;
+
   const BookDetailPage({super.key, required this.bookId});
+
+  @override
+  _BookDetailPageState createState() => _BookDetailPageState();
+}
+
+class _BookDetailPageState extends State<BookDetailPage> {
+  late Future<Book> _bookFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _bookFuture = fetchDetailBook(widget.bookId);
+  }
+
+  Future<Book> fetchDetailBook(int id) async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://gutendex.com/books/$id'),
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return Book.fromJson(data);
+      } else {
+        throw Exception('Failed to load book detail');
+      }
+    } catch (e) {
+      throw Exception('Error fetching book detail: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 189, 90, 90),
-        title: Text(
+        title: const Text(
           "Readify",
           style: TextStyle(fontSize: 20, color: Colors.white),
         ),
         centerTitle: true,
-        leading: Icon(Icons.arrow_back, color: Colors.white),
+        leading: const BackButton(color: Colors.white),
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.white),
@@ -22,138 +56,168 @@ class BookDetailPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: EdgeInsets.all(16.0),
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8.0),
-                child: Image.network(
-                  'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1631452181i/58977752.jpg',
-                  height: 300,
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                "Tâm lý học tội phạm",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              Text(
-                "Đỗ Ái Nhi (Dịch)",
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              SizedBox(height: 10),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-
-                children: [
-                  Text(
-                    'Đánh giá:',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+      body: FutureBuilder<Book>(
+        future: _bookFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text("Lỗi: ${snapshot.error}"));
+          } else if (snapshot.hasData) {
+            final book = snapshot.data!;
+            return ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.network(
+                        book.coverUrl ?? 'https://via.placeholder.com/150',
+                        height: 300,
+                        errorBuilder:
+                            (_, __, ___) => const Icon(Icons.broken_image),
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 20),
-                  ...List.generate(5, (index) {
-                    return Icon(
-                      index < 4 ? Icons.star : Icons.star_border,
-                      color: const Color.fromARGB(255, 189, 90, 90),
-                    );
-                  }),
-                ],
-              ),
-              SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Thể loại:",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                    const SizedBox(height: 10),
+                    Text(
+                      book.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  SizedBox(width: 20),
-                  Text(
-                    "Fantasy",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                    const SizedBox(height: 10),
+                    Text(
+                      book.authors.isNotEmpty
+                          ? book.authors[0].name
+                          : "Unknown Author",
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 5),
-              Text(
-                "Available",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: const Color.fromARGB(255, 189, 90, 90),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ReadingPage(bookId: bookId),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (index) {
+                        return Icon(
+                          Icons.star,
+                          color:
+                              index < 4
+                                  ? const Color.fromARGB(255, 189, 90, 90)
+                                  : Colors.grey,
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 5),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Thể loại:",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 189, 90, 90),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                        const SizedBox(width: 10),
+                        Text(
+                          book.subjects.isNotEmpty
+                              ? book.subjects.first
+                              : "Không rõ",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black26,
+                                offset: Offset(1, 1),
+                                blurRadius: 2,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      "Available",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Color.fromARGB(255, 189, 90, 90),
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 45,
-                        vertical: 12,
-                      ),
-                      child: Text(
-                        "Đọc",
-                        style: TextStyle(fontSize: 18, color: Colors.white),
-                      ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            print(book);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) => ReadingPage(
+                                      bookUrl: book.contentUrl ?? "",
+                                    ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              189,
+                              90,
+                              90,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 45,
+                              vertical: 12,
+                            ),
+                            child: Text(
+                              "Đọc",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        IconButton(
+                          onPressed: () {},
+                          icon: const Icon(
+                            Icons.favorite_border_outlined,
+                            color: Color.fromARGB(255, 189, 90, 90),
+                            size: 30,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  SizedBox(width: 10),
-                  IconButton(
-                    onPressed: () {},
-                    icon: IconTheme(
-                      data: IconThemeData(weight: 100),
-                      child: Icon(
-                        Icons.favorite_border_outlined,
-                        color: const Color.fromARGB(255, 189, 90, 90),
-                        size: 30,
-                      ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      "Mô tả sách không có sẵn từ API Gutendex. Bạn có thể hiển thị đoạn mô tả tĩnh hoặc bỏ phần này.",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              Text(
-                "TÂM LÝ HỌC TỘI PHẠM - PHÁC HỌA CHÂN DUNG KẺ PHẠM TỘI \n Tội phạm, nhất là những vụ án mạng, luôn là một chủ đề thu hút sự quan tâm của công chúng, khơi gợi sự hiếu kỳ của bất cứ ai. Một khi đã bắt đầu theo dõi vụ án, hẳn bạn không thể không quan tâm tới kết cục, đặc biệt là cách thức và động cơ của kẻ sát nhân, từ những vụ án phạm vi hẹp cho đến những vụ án làm rúng động cả thế giới.\n Lấy 36 vụ án CÓ THẬT kinh điển nhất trong hồ sơ tội phạm của FBI, “Tâm lý học tội phạm - phác họa chân dung kẻ phạm tội” mang đến cái nhìn toàn cảnh của các chuyên gia về chân dung tâm lý tội phạm. Trả lời cho câu hỏi: Làm thế nào phân tích được tâm lý và hành vi tội phạm, từ đó khôi phục sự thật thông qua các manh mối, từ hiện trường vụ án, thời gian, dấu tích,… để tìm ra kẻ sát nhân thực sự. \n Đằng sau máu và nước mắt là các câu chuyện rợn tóc gáy về tội ác, góc khuất xã hội và những màn đấu trí đầy gay cấn giữa điều tra viên và kẻ phạm tội. Trong số đó có những con quỷ ăn thịt người; những cô gái xinh đẹp nhưng xảo quyệt; và cả cách trả thù đầy man rợ của các nhà khoa học,… Một số đã sa vào lưới pháp luật ngay khi chúng vừa ra tay, nhưng cũng có những kẻ cứ vậy ngủ yên hơn hai mươi năm. \n Bằng giọng văn sắc bén, “Tâm lý học tội phạm - phác họa chân dung kẻ phạm tội” hứa hẹn dẫn dắt người đọc đi qua các cung bậc cảm xúc từ tò mò, ngạc nhiên đến sợ hãi, hoang mang tận cùng. Chúng ta sẽ lần tìm về quá khứ để từng bước gỡ những nút thắt chưa được giải, khiến ta ngạt thở đọc tới tận trang cuối cùng. \n Hy vọng cuốn sách sẽ giúp bạn có cái nhìn sâu sắc, rõ ràng hơn về bộ môn tâm lý học tội phạm và có thể rèn luyện thêm sự tư duy, nhạy bén.",
-                textAlign: TextAlign.left,
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ],
-          ),
-        ],
+                  ],
+                ),
+              ],
+            );
+          } else {
+            return const Center(child: Text("Không tìm thấy dữ liệu sách."));
+          }
+        },
       ),
     );
   }
