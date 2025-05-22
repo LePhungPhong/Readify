@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:readify/controllers/book_controller.dart';
 import 'package:readify/models/book_model.dart';
+import 'package:readify/views/docsachs/detail_book.dart';
 
 class BooksByCategoryPage extends StatefulWidget {
   final String topic;
 
-  const BooksByCategoryPage({required this.topic});
+  const BooksByCategoryPage({required this.topic, super.key});
 
   @override
-  _BooksByCategoryPageState createState() => _BooksByCategoryPageState();
+  State<BooksByCategoryPage> createState() => _BooksByCategoryPageState();
 }
 
 class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
   final BookController _controller = BookController();
   final ScrollController _scrollController = ScrollController();
   List<Book> _books = [];
-  bool _isLoadingMore = false;
   bool _isLoading = true;
+  bool _isLoadingMore = false;
   bool _hasMore = true;
 
   @override
   void initState() {
     super.initState();
-    // Load dữ liệu ban đầu
     _loadBooks();
-    // Thêm listener để phát hiện khi kéo xuống cuối danh sách
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
               _scrollController.position.maxScrollExtent - 200 &&
@@ -36,59 +35,46 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
   }
 
   Future<void> _loadBooks() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
       final books = await _controller.getBooksByCategory(widget.topic);
       if (mounted) {
-        // Kiểm tra xem widget còn tồn tại không
         setState(() {
           _books = books;
           _hasMore = _controller.nextUrl != null;
-          _isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error loading books: $e')));
+        ).showSnackBar(SnackBar(content: Text('Lỗi tải sách: $e')));
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _loadMoreBooks() async {
-    if (_isLoadingMore || !_hasMore) return;
+    if (!_hasMore || _isLoadingMore) return;
 
-    setState(() {
-      _isLoadingMore = true;
-    });
-
+    setState(() => _isLoadingMore = true);
     try {
       final moreBooks = await _controller.getNextPageByCategory();
       if (mounted) {
-        // Kiểm tra xem widget còn tồn tại không
         setState(() {
-          _books = moreBooks;
+          _books.addAll(moreBooks);
           _hasMore = _controller.nextUrl != null;
-          _isLoadingMore = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        // Kiểm tra trước khi sử dụng context
-        setState(() {
-          _isLoadingMore = false;
-        });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error loading more books: $e')));
+        ).showSnackBar(SnackBar(content: Text('Lỗi tải thêm sách: $e')));
       }
+    } finally {
+      if (mounted) setState(() => _isLoadingMore = false);
     }
   }
 
@@ -96,6 +82,63 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Widget _buildBookGridItem(Book book) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookDetailPage(bookId: book.id),
+          ),
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                book.coverUrl ?? '',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder:
+                    (context, error, stackTrace) => Container(
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.broken_image,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                    ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            book.title ?? 'Không có tiêu đề',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            book.authors.isNotEmpty
+                ? book.authors.join(", ")
+                : 'Tác giả không rõ',
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -107,10 +150,8 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
               : CustomScrollView(
                 controller: _scrollController,
                 slivers: [
-                  // Header với hình nền và tiêu đề
                   SliverAppBar(
                     expandedHeight: 200,
-                    floating: false,
                     pinned: true,
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text(
@@ -149,21 +190,19 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                       IconButton(
                         icon: const Icon(Icons.search, color: Colors.white),
                         onPressed: () {
-                          // Xử lý tìm kiếm
+                          // TODO: xử lý tìm kiếm
                         },
                       ),
                     ],
                   ),
-                  // Nội dung chính
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Tiêu đề "Sách (tổng số sách)"
                           Text(
-                            'Sách (${_controller.totalCount ?? 0})',
+                            'Sách (${_controller.totalCount ?? _books.length})',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -171,10 +210,10 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Danh sách sách dạng lưới 2 cột
                           GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _books.length,
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
@@ -182,70 +221,18 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                                   mainAxisSpacing: 16,
                                   childAspectRatio: 0.55,
                                 ),
-                            itemCount: _books.length,
-                            itemBuilder: (context, index) {
-                              final book = _books[index];
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        book.coverUrl ?? '',
-                                        fit: BoxFit.cover,
-                                        width: double.infinity,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                Container(
-                                                  color: Colors.grey[300],
-                                                  child: const Icon(
-                                                    Icons.broken_image,
-                                                    size: 48,
-                                                    color: Colors.grey,
-                                                  ),
-                                                ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    book.title ?? 'Không có tiêu đề',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    book.authors.isNotEmpty
-                                        ? book.authors[0].name ??
-                                            'Tác giả không rõ'
-                                        : 'Tác giả không rõ',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              );
-                            },
+                            itemBuilder:
+                                (context, index) =>
+                                    _buildBookGridItem(_books[index]),
                           ),
-                          // Hiển thị loading indicator khi đang fetch thêm dữ liệu
                           if (_isLoadingMore)
                             const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              padding: EdgeInsets.symmetric(vertical: 16),
                               child: Center(child: CircularProgressIndicator()),
                             ),
-                          // Thông báo khi không còn dữ liệu để load
                           if (!_hasMore && _books.isNotEmpty)
                             const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16.0),
+                              padding: EdgeInsets.symmetric(vertical: 16),
                               child: Center(child: Text('Đã tải hết sách')),
                             ),
                         ],

@@ -29,7 +29,7 @@ class BookService {
         nextUrl = data['next']; // Lưu URL trang tiếp theo
         previousUrl = data['previous']; // Lưu URL trang trước
         final List books = data['results'] ?? [];
-        return books.map((json) => Book.fromJson(json)).toList();
+        return books.map((json) => Book.fromApiJson(json)).toList();
       } else {
         throw Exception('Failed to load books');
       }
@@ -54,7 +54,7 @@ class BookService {
         nextUrl = data['next']; // Lưu URL trang tiếp theo
         previousUrl = data['previous']; // Lưu URL trang trước
         final List books = data['results'] ?? [];
-        return books.map((json) => Book.fromJson(json)).toList();
+        return books.map((json) => Book.fromApiJson(json)).toList();
       } else {
         throw Exception('Failed to load books by category');
       }
@@ -76,7 +76,7 @@ class BookService {
         nextUrl = data['next']; // Cập nhật URL trang tiếp theo
         previousUrl = data['previous']; // Cập nhật URL trang trước
         final List books = data['results'] ?? [];
-        return books.map((json) => Book.fromJson(json)).toList();
+        return books.map((json) => Book.fromApiJson(json)).toList();
       } else {
         throw Exception('Failed to load next page');
       }
@@ -98,7 +98,7 @@ class BookService {
         nextUrl = data['next']; // Cập nhật URL trang tiếp theo
         previousUrl = data['previous']; // Cập nhật URL trang trước
         final List books = data['results'] ?? [];
-        return books.map((json) => Book.fromJson(json)).toList();
+        return books.map((json) => Book.fromApiJson(json)).toList();
       } else {
         throw Exception('Failed to load previous page');
       }
