@@ -3,6 +3,7 @@ import 'package:readify/views/danhmuc/book_by_category.dart';
 import '../../controllers/book_controller.dart';
 import '../../controllers/local_book_controller.dart';
 import '../../models/book_model.dart';
+import '../../views/docsachs/detail_book.dart';
 
 class BookListView extends StatefulWidget {
   @override
@@ -101,7 +102,14 @@ class _BookListViewState extends State<BookListView> {
                             padding: const EdgeInsets.symmetric(horizontal: 8),
                             child: GestureDetector(
                               onTap: () {
-                                // Xử lý khi nhấn vào sách
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) =>
+                                            BookDetailPage(bookId: book.id),
+                                  ),
+                                );
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
@@ -259,7 +267,13 @@ class _BookListViewState extends State<BookListView> {
                     padding: const EdgeInsets.only(right: 12),
                     child: GestureDetector(
                       onTap: () {
-                        // Xử lý khi nhấn vào sách
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => BookDetailPage(bookId: book.id),
+                          ),
+                        );
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),

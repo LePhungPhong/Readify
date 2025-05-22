@@ -143,16 +143,16 @@ Bạn có thể đọc offline mà không cần tải về từ internet.''',
     await database.close();
   }
 
-  Future<void> saveReadingStatus(
-    int bookId,
+  Future<void> saveReadingStatusByUrl(
+    String bookUrl,
     int currentPage,
     bool isBookmarked,
   ) async {
     final database = await db;
     await database.insert('ReadingStatus', {
-      'book_id': bookId,
-      'current_page': currentPage,
-      'is_bookmarked': isBookmarked ? 1 : 0,
+      'bookUrl': bookUrl,
+      'currentPage': currentPage,
+      'isBookmarked': isBookmarked ? 1 : 0,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 

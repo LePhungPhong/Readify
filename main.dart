@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'settings/my_library.dart';
+import 'my_library.dart';
+import 'settings_page.dart';
 
 void main() {
   runApp(MyApp());
