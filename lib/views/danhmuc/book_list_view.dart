@@ -6,6 +6,8 @@ import '../../models/book_model.dart';
 import '../../views/docsachs/detail_book.dart';
 
 class BookListView extends StatefulWidget {
+  const BookListView({Key? key}) : super(key: key);
+
   @override
   _BookListViewState createState() => _BookListViewState();
 }
@@ -21,9 +23,22 @@ class _BookListViewState extends State<BookListView> {
   @override
   void initState() {
     super.initState();
+    print("initState chay r nhe");
     recentBooks = controller.getBooks();
-    myBooks = localController.getMyBooks();
-    favoriteBooks = localController.getFavorites();
+    myBooks = localController.getBooksByType("my_books");
+    favoriteBooks = localController.getBooksByType("favorite_books");
+
+    print("chay");
+    myBooks.then((books) {
+      print("Số lượng sách trong 'Sách của tôi': ${books.length}");
+    });
+  }
+
+  void reloadData() {
+    setState(() {
+      myBooks = localController.getBooksByType("my_books");
+      favoriteBooks = localController.getBooksByType("favorite_books");
+    });
   }
 
   @override
@@ -109,7 +124,7 @@ class _BookListViewState extends State<BookListView> {
                                         (context) =>
                                             BookDetailPage(bookId: book.id),
                                   ),
-                                );
+                                ).then((_) => {reloadData()});
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
@@ -120,20 +135,31 @@ class _BookListViewState extends State<BookListView> {
                                         borderRadius: BorderRadius.circular(12),
                                         child: Stack(
                                           children: [
-                                            Image.network(
-                                              book.coverUrl ?? '',
-                                              fit: BoxFit.cover,
-                                              width: double.infinity,
-                                              errorBuilder:
-                                                  (_, __, ___) => Container(
-                                                    color: Colors.grey[300],
-                                                    child: const Icon(
-                                                      Icons.broken_image,
-                                                      size: 48,
-                                                      color: Colors.grey,
+                                            if (book.coverUrl != null &&
+                                                book.coverUrl!.isNotEmpty)
+                                              Image.network(
+                                                book.coverUrl!,
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                                errorBuilder:
+                                                    (_, __, ___) => Container(
+                                                      color: Colors.grey[300],
+                                                      child: const Icon(
+                                                        Icons.broken_image,
+                                                        size: 48,
+                                                        color: Colors.grey,
+                                                      ),
                                                     ),
-                                                  ),
-                                            ),
+                                              )
+                                            else
+                                              Container(
+                                                color: Colors.grey[300],
+                                                child: const Icon(
+                                                  Icons.image_not_supported,
+                                                  size: 48,
+                                                  color: Colors.grey,
+                                                ),
+                                              ),
                                             Positioned.fill(
                                               child: Container(
                                                 decoration: BoxDecoration(
@@ -189,6 +215,7 @@ class _BookListViewState extends State<BookListView> {
               ],
             ),
           ),
+
           const SizedBox(height: 30),
 
           // My Books Section
@@ -233,7 +260,18 @@ class _BookListViewState extends State<BookListView> {
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const SizedBox.shrink();
+          // Nếu không có dữ liệu thì bạn có thể show thông báo hoặc không
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Text(
+              "$title: Không có sách nào.",
+              style: const TextStyle(
+                fontSize: 16,
+                fontStyle: FontStyle.italic,
+                color: Colors.grey,
+              ),
+            ),
+          );
         }
 
         final books = snapshot.data!;
@@ -273,7 +311,7 @@ class _BookListViewState extends State<BookListView> {
                             builder:
                                 (context) => BookDetailPage(bookId: book.id),
                           ),
-                        );
+                        ).then((_) => {reloadData()});
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
@@ -284,20 +322,32 @@ class _BookListViewState extends State<BookListView> {
                               borderRadius: BorderRadius.circular(12),
                               child: Stack(
                                 children: [
-                                  Image.network(
-                                    book.coverUrl ?? '',
-                                    width: 120,
-                                    height: 160,
-                                    fit: BoxFit.cover,
-                                    errorBuilder:
-                                        (_, __, ___) => Container(
-                                          color: Colors.grey[300],
-                                          child: const Icon(
-                                            Icons.broken_image,
-                                            color: Colors.grey,
+                                  if (book.coverUrl != null &&
+                                      book.coverUrl!.isNotEmpty)
+                                    Image.network(
+                                      book.coverUrl!,
+                                      width: 120,
+                                      height: 160,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (_, __, ___) => Container(
+                                            color: Colors.grey[300],
+                                            child: const Icon(
+                                              Icons.broken_image,
+                                              color: Colors.grey,
+                                            ),
                                           ),
-                                        ),
-                                  ),
+                                    )
+                                  else
+                                    Container(
+                                      width: 120,
+                                      height: 160,
+                                      color: Colors.grey[300],
+                                      child: const Icon(
+                                        Icons.image_not_supported,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
                                   Positioned.fill(
                                     child: Container(
                                       decoration: BoxDecoration(
@@ -322,7 +372,7 @@ class _BookListViewState extends State<BookListView> {
                               width: 120,
                               child: Text(
                                 book.title ?? 'Không có tiêu đề',
-                                maxLines: 2,
+                                maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontSize: 13,
@@ -346,7 +396,7 @@ class _BookListViewState extends State<BookListView> {
   }
 
   Widget _buildCategories(BuildContext context) {
-    final categoryMapping = {
+    final Map<String, String> categoryMapping = {
       'Imagine': 'fantasy',
       'Fiction': 'fiction',
       'Criminal': 'crime',
@@ -363,13 +413,16 @@ class _BookListViewState extends State<BookListView> {
       children:
           categories.map((category) {
             final topic = categoryMapping[category];
+            if (topic == null) {
+              return const SizedBox.shrink();
+            }
             final imgPath = 'assets/categories/$topic.jpg';
             return GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BooksByCategoryPage(topic: topic!),
+                    builder: (context) => BooksByCategoryPage(topic: topic),
                   ),
                 );
               },
@@ -382,7 +435,6 @@ class _BookListViewState extends State<BookListView> {
                   image: DecorationImage(
                     image: AssetImage(imgPath),
                     fit: BoxFit.cover,
-                    onError: (_, __) => print('Lỗi tải ảnh: $imgPath'),
                     colorFilter: ColorFilter.mode(
                       Colors.black.withOpacity(0.5),
                       BlendMode.darken,
@@ -396,20 +448,21 @@ class _BookListViewState extends State<BookListView> {
                     ),
                   ],
                 ),
-                alignment: Alignment.center,
-                child: Text(
-                  category,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black54,
-                        offset: Offset(1, 1),
-                        blurRadius: 2,
-                      ),
-                    ],
+                child: Center(
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black87,
+                          offset: Offset(2, 2),
+                          blurRadius: 3,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

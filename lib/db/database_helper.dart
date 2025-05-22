@@ -8,8 +8,15 @@ class DatabaseHelper {
 
   DatabaseHelper._init();
 
+  Future<void> deleteDatabaseIfNeeded() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'books.db');
+    await deleteDatabase(path);
+  }
+
   Future<Database> get database async {
     if (_database != null) return _database!;
+    // await deleteDatabaseIfNeeded(); // chỉ cần khi dev
     _database = await _initDB('books.db');
     return _database!;
   }
@@ -23,9 +30,11 @@ class DatabaseHelper {
 
   Future _createDB(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE my_books (
+      CREATE TABLE books (
         id INTEGER PRIMARY KEY,
         title TEXT,
+        authors TEXT,
+        types TEXT,
         coverUrl TEXT,
         contentUrl TEXT,
         subjects TEXT,
@@ -34,82 +43,120 @@ class DatabaseHelper {
         languages TEXT,
         isCopyright INTEGER,
         mediaType TEXT,
-        downloadCount INTEGER
-      )
-    ''');
-
-    await db.execute('''
-      CREATE TABLE favorite_books (
-        id INTEGER PRIMARY KEY,
-        title TEXT,
-        coverUrl TEXT,
-        contentUrl TEXT,
-        subjects TEXT,
-        summaries TEXT,
-        bookshelves TEXT,
-        languages TEXT,
-        isCopyright INTEGER,
-        mediaType TEXT,
-        downloadCount INTEGER
+        downloadCount INTEGER,
+        filePath TEXT,
+        lastReadCfi TEXT
       )
     ''');
   }
 
-  Future<void> insertBook(Book book, String table) async {
+  Future<void> insertBook(Book book, List<String> types) async {
     final db = await instance.database;
 
-    // Convert subjects, bookshelves, and languages to strings if they're lists
-    final subjects = book.subjects.join(',');
-    final summaries = book.summaries.join(',');
-    final bookshelves = book.bookshelves.join(',');
-    final languages = book.languages.join(',');
-
-    await db.insert(table, {
+    await db.insert('books', {
       'id': book.id,
       'title': book.title,
+      'authors': book.authors.join(','),
+      'types': types.join(','),
       'coverUrl': book.coverUrl,
       'contentUrl': book.contentUrl,
-      'subjects': subjects,
-      'summaries': summaries,
-      'bookshelves': bookshelves,
-      'languages': languages,
-      'isCopyright': book.isCopyright ? 1 : 0, // Convert boolean to integer
+      'subjects': book.subjects.join(','),
+      'summaries': book.summaries.isNotEmpty ? book.summaries.join(", ") : '',
+      'bookshelves': book.bookshelves.join(','),
+      'languages': book.languages.join(','),
+      'isCopyright': book.isCopyright ? 1 : 0,
       'mediaType': book.mediaType,
       'downloadCount': book.downloadCount,
+      'filePath': book.filePath ?? '',
+      'lastReadCfi': "",
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<List<Book>> getBooks(String table) async {
+  Future<List<Book>> getBooks({String? type}) async {
     final db = await instance.database;
-    final result = await db.query(table);
+    List<Map<String, Object?>> result;
 
-    return result.map((json) {
-      // Safely cast the fields to String? before calling .split()
-      final subjects = (json['subjects'] as String?)?.split(',') ?? [];
-      final summaries = (json['summaries'] as String?)?.split(',') ?? [];
-      final bookshelves = (json['bookshelves'] as String?)?.split(',') ?? [];
-      final languages = (json['languages'] as String?)?.split(',') ?? [];
-
-      return Book(
-        id: json['id'] as int,
-        title: json['title'] as String,
-        authors: [], // You can update this if you have author data
-        coverUrl: json['coverUrl'] as String?,
-        contentUrl: json['contentUrl'] as String?,
-        subjects: subjects,
-        summaries: summaries,
-        bookshelves: bookshelves,
-        languages: languages,
-        isCopyright:
-            json['isCopyright'] == 1, // Convert integer back to boolean
-        mediaType: json['mediaType'] as String,
-        downloadCount: json['downloadCount'] as int,
+    if (type != null) {
+      result = await db.query(
+        'books',
+        where: 'types LIKE ?',
+        whereArgs: ['%$type%'],
       );
-    }).toList();
+    } else {
+      result = await db.query('books');
+    }
+
+    return result.map((json) => _fromJson(json)).toList();
   }
 
-  Future<void> deleteBook(int id, String table) async {
+  Future<Book?> getBookById(int id) async {
     final db = await instance.database;
-    await db.delete(table, where: 'id = ?', whereArgs: [id]);
+    final result = await db.query('books', where: 'id = ?', whereArgs: [id]);
+    return result.isNotEmpty ? _fromJson(result.first) : null;
+  }
+
+  Future<void> deleteBook(int id) async {
+    final db = await instance.database;
+    await db.delete('books', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<bool> isBookExists(int id) async {
+    final db = await instance.database;
+    final result = await db.query('books', where: 'id = ?', whereArgs: [id]);
+    return result.isNotEmpty;
+  }
+
+  Future<void> updateBookFilePath(int bookId, String filePath) async {
+    final db = await instance.database;
+    await db.update(
+      'books',
+      {'filePath': filePath},
+      where: 'id = ?',
+      whereArgs: [bookId],
+    );
+  }
+
+  Book _fromJson(Map<String, Object?> json) {
+    return Book(
+      id: json['id'] as int,
+      title: json['title'] as String,
+      authors: (json['authors'] as String?)?.split(',') ?? [],
+      types: (json['types'] as String?)?.split(',') ?? [],
+      coverUrl: json['coverUrl'] as String?,
+      contentUrl: json['contentUrl'] as String?,
+      subjects: (json['subjects'] as String?)?.split(',') ?? [],
+      summaries: (json['summaries'] as String?)?.split(',') ?? [],
+      bookshelves: (json['bookshelves'] as String?)?.split(',') ?? [],
+      languages: (json['languages'] as String?)?.split(',') ?? [],
+      isCopyright: json['isCopyright'] == 1,
+      mediaType: json['mediaType'] as String,
+      downloadCount: json['downloadCount'] as int,
+      lastReadCfi: null,
+      filePath: json['filePath'] as String?,
+    );
+  }
+
+  Future<void> updateLastCfi(int bookId, String cfi) async {
+    final db = await database;
+    await db.update(
+      'books',
+      {'lastReadCfi': cfi},
+      where: 'id = ?',
+      whereArgs: [bookId],
+    );
+  }
+
+  Future<String?> getLastCfi(int bookId) async {
+    final db = await database;
+    final result = await db.query(
+      'books',
+      columns: ['lastReadCfi'],
+      where: 'id = ?',
+      whereArgs: [bookId],
+    );
+    if (result.isNotEmpty) {
+      return result.first['lastReadCfi'] as String?;
+    }
+    return null;
   }
 }
