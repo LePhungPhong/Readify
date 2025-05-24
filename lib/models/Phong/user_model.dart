@@ -1,30 +1,22 @@
 class UserModel {
-  final int? id;
+  final int id;
   final String email;
   final String password;
   final String name;
   final String? avatarUrl;
+  final String? createdAt;
+  final String? updatedAt;
 
   UserModel({
-    this.id,
+    required this.id,
     required this.email,
     required this.password,
     required this.name,
     this.avatarUrl,
+    this.createdAt,
+    this.updatedAt,
   });
 
-  // Phương thức từ Map vào đối tượng UserModel
-  factory UserModel.fromMap(Map<String, dynamic> map) {
-    return UserModel(
-      id: map['id'],
-      email: map['email'],
-      password: map['password'],
-      name: map['name'],
-      avatarUrl: map['avatar_url'],
-    );
-  }
-
-  // Phương thức chuyển đổi đối tượng UserModel thành Map để lưu vào database
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -32,6 +24,20 @@ class UserModel {
       'password': password,
       'name': name,
       'avatar_url': avatarUrl,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
     };
+  }
+
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
+      id: map['id'] as int,
+      email: map['email'] as String,
+      password: map['password'] as String,
+      name: map['name'] as String,
+      avatarUrl: map['avatar_url'] as String?,
+      createdAt: map['created_at'] as String?,
+      updatedAt: map['updated_at'] as String?,
+    );
   }
 }

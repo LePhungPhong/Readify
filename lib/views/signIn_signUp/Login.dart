@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readify/controllers/Phong/AuthService.dart';
 import 'package:readify/views/danhmuc/home_view.dart';
-//import 'package:readify/models/Phong/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -32,25 +32,57 @@ class _LoginState extends State<Login> {
 
     setState(() => _isLoading = true);
 
-    final user = await _authService.login(email, password);
+    try {
+      final user = await _authService.login(email, password);
 
-    setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
 
-    if (user != null) {
-      // Đăng nhập thành công
+      if (user != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Xin chào, ${user.name}!')));
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => HomeView()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Email hoặc mật khẩu không đúng')),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Xin chào, ${user.name}!')));
+      ).showSnackBar(SnackBar(content: Text('Đăng nhập thất bại: $e')));
+    }
+  }
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => HomeView()),
-      );
-    } else {
-      // Sai thông tin đăng nhập
+  void _handleForgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Email hoặc mật khẩu không đúng')),
+        const SnackBar(
+          content: Text('Vui lòng nhập email để đặt lại mật khẩu'),
+        ),
       );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư của bạn.',
+          ),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi: $e')));
     }
   }
 
@@ -89,8 +121,6 @@ class _LoginState extends State<Login> {
               ),
             ),
             const SizedBox(height: 30),
-
-            // Email
             Text(
               'Email',
               style: GoogleFonts.roboto(
@@ -119,8 +149,6 @@ class _LoginState extends State<Login> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // Password
             Text(
               'Password',
               style: GoogleFonts.roboto(
@@ -154,16 +182,11 @@ class _LoginState extends State<Login> {
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
-
-            // Forgot password
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: () {
-                  // TODO: Forgot password action
-                },
+                onPressed: _handleForgotPassword,
                 child: Text(
                   "Quên mật khẩu?",
                   style: GoogleFonts.roboto(
@@ -173,10 +196,7 @@ class _LoginState extends State<Login> {
                 ),
               ),
             ),
-
             const SizedBox(height: 30),
-
-            // Login Button
             Center(
               child: SizedBox(
                 width: double.infinity,
