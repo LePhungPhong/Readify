@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-import 'package:flutter/material.dart';
-import 'my_library.dart';
-import 'settings_page.dart';
-=======
+
 // import 'package:flutter/material.dart';
 // import 'settings/my_library.dart';
->>>>>>> phong
+
 
 // void main() {
 //   runApp(MyApp());
