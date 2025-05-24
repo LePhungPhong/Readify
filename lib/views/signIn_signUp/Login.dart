@@ -224,6 +224,22 @@ class _LoginState extends State<Login> {
                 ),
               ),
             ),
+            const SizedBox(height: 20),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/Register');
+                },
+                child: Text(
+                  "Chưa có tài khoản? Đăng ký",
+                  style: GoogleFonts.roboto(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                    color: const Color.fromARGB(255, 189, 90, 90),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
