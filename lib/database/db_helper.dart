@@ -13,28 +13,20 @@ class AppDatabase {
 
   Future<Database> get db async {
     if (_db != null) return _db!;
-    _db = await _initDatabase();
+    _db = await initDatabase();
     return _db!;
   }
 
-  Future<Map<String, dynamic>?> getBookById(int id) async {
-    final dbClient = await db;
-    final result = await dbClient.query(
-      'Books',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-    if (result.isNotEmpty) {
-      return result.first;
-    }
-    return null;
-  }
-
-  Future<Database> _initDatabase() async {
+  Future<Database> initDatabase() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'app.db');
 
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -44,79 +36,79 @@ class AppDatabase {
         book_id INTEGER,
         current_page INTEGER,
         is_bookmarked INTEGER
-      );
+      )
     ''');
 
     await db.execute('''
-    CREATE TABLE Users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT,
-      name TEXT,
-      avatar_url TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-  ''');
+      CREATE TABLE Users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT,
+        name TEXT,
+        avatar_url TEXT,
+        created_at TEXT,
+        updated_at TEXT
+      )
+    ''');
 
     await db.execute('''
-    CREATE TABLE Categories (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL
-    );
-  ''');
+      CREATE TABLE Categories (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL
+      )
+    ''');
 
     await db.execute('''
-    CREATE TABLE Books (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      author TEXT,
-      description TEXT,
-      category_id INTEGER,
-      cover_image_url TEXT,
-      file_url TEXT,
-      content TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (category_id) REFERENCES Categories(id)
-    );
-  ''');
+      CREATE TABLE Books (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        author TEXT,
+        description TEXT,
+        category_id INTEGER,
+        cover_image_url TEXT,
+        file_url TEXT,
+        content TEXT,
+        created_at TEXT,
+        FOREIGN KEY (category_id) REFERENCES Categories(id)
+      )
+    ''');
 
     await db.execute('''
-    CREATE TABLE Bookmarks (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      book_id INTEGER,
-      page_number INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES Users(id),
-      FOREIGN KEY (book_id) REFERENCES Books(id)
-    );
-  ''');
+      CREATE TABLE Bookmarks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        book_id INTEGER,
+        page_number INTEGER,
+        created_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES Users(id),
+        FOREIGN KEY (book_id) REFERENCES Books(id)
+      )
+    ''');
 
     await db.execute('''
-    CREATE TABLE Library (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      book_id INTEGER,
-      added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES Users(id),
-      FOREIGN KEY (book_id) REFERENCES Books(id)
-    );
-  ''');
+      CREATE TABLE Library (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        book_id INTEGER,
+        added_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES Users(id),
+        FOREIGN KEY (book_id) REFERENCES Books(id)
+      )
+    ''');
 
     await db.execute('''
-    CREATE TABLE Reviews (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER,
-      book_id INTEGER,
-      rating INTEGER,
-      comment TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES Users(id),
-      FOREIGN KEY (book_id) REFERENCES Books(id)
-    );
-  ''');
+      CREATE TABLE Reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        book_id INTEGER,
+        rating INTEGER,
+        comment TEXT,
+        created_at TEXT,
+        FOREIGN KEY (user_id) REFERENCES Users(id),
+        FOREIGN KEY (book_id) REFERENCES Books(id)
+      )
+    ''');
 
-    // Thêm dữ liệu mẫu
     await db.insert('Categories', {'name': 'Tiểu thuyết'});
 
     await db.insert('Books', {
@@ -135,7 +127,17 @@ CHAPTER II. TIẾP TỤC
 
 Đây là chương tiếp theo trong sách mẫu. Nội dung này đang được lưu trực tiếp vào SQLite. 
 Bạn có thể đọc offline mà không cần tải về từ internet.''',
+      'created_at': DateTime.now().toIso8601String(),
     });
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE Users ADD COLUMN updated_at TEXT');
+      await db.execute(
+        "UPDATE Users SET updated_at = '1970-01-01T00:00:00.000Z' WHERE updated_at IS NULL",
+      );
+    }
   }
 
   Future<void> close() async {
@@ -171,7 +173,6 @@ Bạn có thể đọc offline mà không cần tải về từ internet.''',
     return null;
   }
 
-  // lay id
   Future<Map<String, dynamic>?> getUserById(int userId) async {
     final dbClient = await db;
     final result = await dbClient.query(
@@ -185,23 +186,36 @@ Bạn có thể đọc offline mà không cần tải về từ internet.''',
     return null;
   }
 
+  Future<Map<String, dynamic>?> getBookById(int id) async {
+    final dbClient = await db;
+    final result = await dbClient.query(
+      'Books',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
+  }
+
   Future<List<Map<String, dynamic>>> getReadingHistory(int userId) async {
     final dbClient = await db;
 
     final result = await dbClient.rawQuery(
       '''
-    SELECT 
-      Books.title,
-      Books.author,
-      Library.added_at,
-      ReadingStatus.current_page,
-      ReadingStatus.is_bookmarked
-    FROM Library
-    JOIN Books ON Library.book_id = Books.id
-    LEFT JOIN ReadingStatus ON Books.id = ReadingStatus.book_id
-    WHERE Library.user_id = ?
-    ORDER BY Library.added_at DESC
-  ''',
+      SELECT 
+        Books.title,
+        Books.author,
+        Library.added_at,
+        ReadingStatus.current_page,
+        ReadingStatus.is_bookmarked
+      FROM Library
+      JOIN Books ON Library.book_id = Books.id
+      LEFT JOIN ReadingStatus ON Books.id = ReadingStatus.book_id
+      WHERE Library.user_id = ?
+      ORDER BY Library.added_at DESC
+      ''',
       [userId],
     );
 
@@ -215,21 +229,19 @@ Bạn có thể đọc offline mà không cần tải về từ internet.''',
     String avatarUrl,
   ) async {
     final dbClient = await db;
-    await dbClient.insert(
-      'Users',
-      {
-        'email': email,
-        'password': password, // Hãy nhớ mã hóa mật khẩu trước khi lưu
-        'name': name,
-        'avatar_url': avatarUrl,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace, // Thay thế nếu có trùng lặp
-    );
+    await dbClient.insert('Users', {
+      'email': email,
+      'password': password,
+      'name': name,
+      'avatar_url': avatarUrl,
+      'created_at': DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   String hashPassword(String password) {
-    final bytes = utf8.encode(password); // Chuyển mật khẩu thành bytes
-    final digest = sha256.convert(bytes); // Mã hóa bằng SHA256
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
     return digest.toString();
   }
 
@@ -256,7 +268,6 @@ Bạn có thể đọc offline mà không cần tải về từ internet.''',
   }) async {
     final dbClient = await db;
 
-    // Kiểm tra email đã tồn tại chưa
     final existingUser = await dbClient.query(
       'Users',
       where: 'email = ?',
@@ -275,8 +286,10 @@ Bạn có thể đọc offline mà không cần tải về từ internet.''',
         'password': hashedPassword,
         'name': name,
         'avatar_url': avatarUrl,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
       }, conflictAlgorithm: ConflictAlgorithm.abort);
-      return null; // Đăng ký thành công, không có lỗi
+      return null;
     } catch (e) {
       return 'Đăng ký thất bại: $e';
     }
@@ -284,10 +297,21 @@ Bạn có thể đọc offline mà không cần tải về từ internet.''',
 
   Future<List<UserModel>> getAllUsers() async {
     final dbClient = await db;
-
-    final result = await dbClient.query('Users'); // Lấy tất cả người dùng
-
-    // Chuyển đổi kết quả từ dạng map thành danh sách các đối tượng UserModel
+    final result = await dbClient.query('Users');
     return result.map((e) => UserModel.fromMap(e)).toList();
+  }
+
+  Future<UserModel?> getUserByEmail(String email) async {
+    final dbClient = await db;
+    final result = await dbClient.query(
+      'Users',
+      where: 'email = ?',
+      whereArgs: [email],
+      limit: 1,
+    );
+    if (result.isNotEmpty) {
+      return UserModel.fromMap(result.first);
+    }
+    return null;
   }
 }

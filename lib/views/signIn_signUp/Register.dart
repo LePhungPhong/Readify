@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readify/database/db_helper.dart'; // Cập nhật import đúng nếu cần
+import 'package:readify/database/db_helper.dart';
+import 'package:readify/models/Phong/user_model.dart';
+import 'package:readify/services/firebase_user_service.dart';
+import 'package:readify/services/local_user_service.dart';
+import 'package:readify/services/user_repository.dart';
+import 'package:readify/controllers/Phong/AuthService.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -11,57 +16,75 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
-
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   final TextEditingController _avatarUrlController = TextEditingController();
-
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+
+  late final LocalUserService _localService;
+  late final FirebaseUserService _firebaseService;
+  late final UserRepository _userRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeServices();
+  }
+
+  Future<void> _initializeServices() async {
+    final database = await AppDatabase().initDatabase();
+    _localService = LocalUserService(database);
+    _firebaseService = FirebaseUserService();
+    _userRepository = UserRepository(_localService, _firebaseService);
+  }
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
       final name = _usernameController.text.trim();
-      final avatarUrl = _avatarUrlController.text.trim();
+      final avatarUrl =
+          _avatarUrlController.text.trim().isEmpty
+              ? 'https://example.com/default_avatar.png'
+              : _avatarUrlController.text.trim();
 
-      final error = await AppDatabase().registerUserSecure(
-        email: email,
-        password: password,
-        name: name,
-        avatarUrl:
-            avatarUrl.isEmpty
-                ? 'https://example.com/default_avatar.png'
-                : avatarUrl,
-      );
+      try {
+        final authService = AuthService();
+        final hashedPassword = authService.hashPassword(password);
+        final user = UserModel(
+          id: DateTime.now().millisecondsSinceEpoch,
+          name: name,
+          email: email,
+          password: hashedPassword,
+          avatarUrl: null,
+          createdAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now().toIso8601String(),
+        );
 
-      if (error == null) {
+        await _localService.insertOrUpdateUser(user);
+        await _userRepository.uploadUserToFirebase(user);
+        await _userRepository.syncFromFirebase();
+
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text('Đăng ký thành công!')));
 
-        // Log tất cả tài khoản sau khi đăng ký thành công
         await _logAllUsers();
-
         Navigator.pushReplacementNamed(context, '/Login');
-      } else {
+      } catch (e) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(error)));
+        ).showSnackBar(SnackBar(content: Text('Đăng ký thất bại: $e')));
       }
     }
   }
 
-  // Hàm log tất cả tài khoản ra console
   Future<void> _logAllUsers() async {
-    final users =
-        await AppDatabase().getAllUsers(); // Lấy danh sách người dùng từ DB
-
-    // In từng tài khoản ra console
+    final users = await _localService.getAllUsers();
     for (var user in users) {
       print(
         'User: ${user.name}, Email: ${user.email}, Avatar URL: ${user.avatarUrl}',
@@ -117,8 +140,6 @@ class _RegisterState extends State<Register> {
                 ),
               ),
               const SizedBox(height: 30),
-
-              // Username
               _buildLabel("Tên người dùng"),
               _buildTextField(
                 _usernameController,
@@ -131,8 +152,6 @@ class _RegisterState extends State<Register> {
                   return null;
                 },
               ),
-
-              // Email
               _buildLabel("Email"),
               _buildTextField(_emailController, Icons.email, "Nhập email", (
                 value,
@@ -145,8 +164,6 @@ class _RegisterState extends State<Register> {
                 }
                 return null;
               }),
-
-              // Password
               _buildLabel("Mật khẩu"),
               _buildPasswordField(
                 controller: _passwordController,
@@ -164,8 +181,6 @@ class _RegisterState extends State<Register> {
                   return null;
                 },
               ),
-
-              // Confirm Password
               _buildLabel("Xác nhận mật khẩu"),
               _buildPasswordField(
                 controller: _confirmPasswordController,
@@ -185,21 +200,14 @@ class _RegisterState extends State<Register> {
                   return null;
                 },
               ),
-
-              // Avatar URL (tùy chọn)
               _buildLabel("Avatar URL (tùy chọn)"),
               _buildTextField(
                 _avatarUrlController,
                 Icons.image,
                 "Nhập URL hình đại diện (nếu có)",
-                (value) {
-                  return null;
-                },
+                (value) => null,
               ),
-
               const SizedBox(height: 30),
-
-              // Register Button
               Center(
                 child: SizedBox(
                   width: double.infinity,

@@ -3,8 +3,12 @@ import 'package:readify/views/signIn_signUp/SplashScreen.dart';
 import 'package:readify/views/signIn_signUp/Login_Signup.dart';
 import 'package:readify/views/signIn_signUp/Register.dart';
 import 'package:readify/views/signIn_signUp/Login.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
 }
 
