@@ -4,6 +4,7 @@ import 'package:readify/controllers/local_book_controller.dart';
 import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/models/book_model.dart';
 import 'package:readify/views/docsachs/detail_book.dart';
+import 'package:readify/views/signIn_signUp/Login_Signup.dart';
 
 class UserInfoScreen extends StatelessWidget {
   final Color mainColor = const Color(0xFFB74F4F);
@@ -276,7 +277,7 @@ class UserInfoScreen extends StatelessWidget {
                                       user.avatarUrl!.isNotEmpty
                                   ? NetworkImage(user.avatarUrl!)
                                   : const AssetImage(
-                                        'assets/images/napoleon.png',
+                                        'assets/images/Untitled.png',
                                       )
                                       as ImageProvider,
                         ),
@@ -354,6 +355,34 @@ class UserInfoScreen extends StatelessWidget {
                         context,
                       ),
                     ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginSignup(),
+                      ),
+                      (Route<dynamic> route) => false,
+                    );
+                  },
+                  icon: Icon(Icons.logout, color: Colors.white),
+                  label: Text(
+                    "Đăng xuất",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.redAccent,
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 5,
+                    shadowColor: Colors.redAccent.withOpacity(0.5),
                   ),
                 ),
 
