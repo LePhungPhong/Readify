@@ -360,13 +360,12 @@ class UserInfoScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
+                  onPressed: () async {
+                    await AuthService().logout();
+                    Navigator.pushNamedAndRemoveUntil(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginSignup(),
-                      ),
-                      (Route<dynamic> route) => false,
+                      '/Login',
+                      (route) => false,
                     );
                   },
                   icon: Icon(Icons.logout, color: Colors.white),

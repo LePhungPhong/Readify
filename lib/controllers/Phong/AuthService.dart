@@ -33,6 +33,12 @@ class AuthService {
     return digest.toString();
   }
 
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('user_id');
+    print('Đã đăng xuất và xóa user_id khỏi SharedPreferences.');
+  }
+
   Future<UserModel?> login(String email, String password) async {
     try {
       final querySnapshot =
