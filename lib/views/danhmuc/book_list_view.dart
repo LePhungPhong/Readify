@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:readify/controllers/Phong/AuthService.dart';
+import 'package:readify/views/about_page/about_page.dart';
+import 'package:readify/views/about_page/user_info_screen.dart';
 import 'package:readify/views/danhmuc/book_by_category.dart';
 import '../../controllers/book_controller.dart';
 import '../../controllers/local_book_controller.dart';
@@ -87,6 +90,7 @@ class _BookListViewState extends State<BookListView> {
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 240,
