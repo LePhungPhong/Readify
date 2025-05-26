@@ -29,25 +29,26 @@ class DatabaseHelper {
   }
 
   Future _createDB(Database db, int version) async {
+    print('⚙️ Creating database...');
     await db.execute('''
-      CREATE TABLE books (
-        id INTEGER PRIMARY KEY,
-        title TEXT,
-        authors TEXT,
-        types TEXT,
-        coverUrl TEXT,
-        contentUrl TEXT,
-        subjects TEXT,
-        summaries TEXT,
-        bookshelves TEXT,
-        languages TEXT,
-        isCopyright INTEGER,
-        mediaType TEXT,
-        downloadCount INTEGER,
-        filePath TEXT,
-        lastReadCfi TEXT
-      )
-    ''');
+    CREATE TABLE books (
+      id INTEGER PRIMARY KEY,
+      title TEXT,
+      authors TEXT,
+      types TEXT,
+      coverUrl TEXT,
+      contentUrl TEXT,
+      subjects TEXT,
+      summaries TEXT,
+      bookshelves TEXT,
+      languages TEXT,
+      isCopyright INTEGER,
+      mediaType TEXT,
+      downloadCount INTEGER,
+      filePath TEXT,
+      lastReadCfi TEXT
+    )
+  ''');
   }
 
   Future<void> insertBook(Book book, List<String> types) async {
