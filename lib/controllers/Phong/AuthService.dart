@@ -1,12 +1,31 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:readify/database/db_helper.dart';
 import 'package:readify/models/Phong/user_model.dart';
+import 'package:readify/services/firebase_user_service.dart';
+import 'package:readify/services/local_user_service.dart';
+import 'package:readify/services/user_repository.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class AuthService {
   final CollectionReference _usersCollection = FirebaseFirestore.instance
       .collection('users');
+  late final LocalUserService _localService;
+  late final FirebaseUserService _firebaseService;
+  late final UserRepository _userRepository;
+
+  AuthService() {
+    _initializeServices();
+  }
+
+  Future<void> _initializeServices() async {
+    final database = await AppDatabase().initDatabase();
+    _localService = LocalUserService(database);
+    _firebaseService = FirebaseUserService();
+    _userRepository = UserRepository(_localService, _firebaseService);
+  }
 
   String hashPassword(String password) {
     final bytes = utf8.encode(password);
@@ -16,7 +35,6 @@ class AuthService {
 
   Future<UserModel?> login(String email, String password) async {
     try {
-      // Truy vấn Firestore để tìm người dùng theo email
       final querySnapshot =
           await _usersCollection
               .where('email', isEqualTo: email)
@@ -28,7 +46,6 @@ class AuthService {
         final userData = userDoc.data() as Map<String, dynamic>;
         final storedPassword = userData['password'] as String;
 
-        // So sánh mật khẩu mã hóa
         final hashedInputPassword = hashPassword(password);
         if (storedPassword == hashedInputPassword) {
           final user = UserModel.fromMap({
@@ -40,14 +57,14 @@ class AuthService {
             'created_at': userData['created_at'] as String?,
             'updated_at': userData['updated_at'] as String?,
           });
-          // Lưu user_id vào SharedPreferences
+
           final prefs = await SharedPreferences.getInstance();
           await prefs.setInt('user_id', user.id);
 
           return user;
         }
       }
-      return null; // Email hoặc mật khẩu không đúng
+      return null;
     } catch (e) {
       print('Đăng nhập thất bại: $e');
       return null;
@@ -61,6 +78,7 @@ class AuthService {
     String? avatarUrl,
   ) async {
     try {
+      // Kiểm tra email trùng lặp
       final querySnapshot =
           await _usersCollection
               .where('email', isEqualTo: email)
@@ -68,12 +86,12 @@ class AuthService {
               .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        return 'Email đã tồn tại.';
+        return 'Email đã được sử dụng. Vui lòng chọn email khác.';
       }
 
       final hashedPassword = hashPassword(password);
       final user = UserModel(
-        id: DateTime.now().millisecondsSinceEpoch,
+        id: const Uuid().v4().hashCode.abs(), // Sử dụng UUID cho ID duy nhất
         email: email,
         password: hashedPassword,
         name: name,
@@ -82,7 +100,17 @@ class AuthService {
         updatedAt: DateTime.now().toIso8601String(),
       );
 
+      // Lưu vào Firestore
       await _usersCollection.doc(user.id.toString()).set(user.toMap());
+      // Lưu vào SQLite
+      await _localService.insertOrUpdateUser(user);
+      // Đồng bộ từ Firestore
+      await _userRepository.syncFromFirebase();
+
+      // Lưu user_id vào SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('user_id', user.id);
+
       return null;
     } catch (e) {
       print('Đăng ký thất bại: $e');
@@ -90,7 +118,6 @@ class AuthService {
     }
   }
 
-  // lấy thông tin người dùng hiện tại từ Firestore
   Future<UserModel?> getCurrentUser() async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getInt('user_id');

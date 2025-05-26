@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readify/database/db_helper.dart';
-import 'package:readify/models/Phong/user_model.dart';
-import 'package:readify/services/firebase_user_service.dart';
-import 'package:readify/services/local_user_service.dart';
-import 'package:readify/services/user_repository.dart';
 import 'package:readify/controllers/Phong/AuthService.dart';
+import 'package:readify/models/Phong/user_model.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -24,23 +20,9 @@ class _RegisterState extends State<Register> {
   final TextEditingController _avatarUrlController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
-  late final LocalUserService _localService;
-  late final FirebaseUserService _firebaseService;
-  late final UserRepository _userRepository;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeServices();
-  }
-
-  Future<void> _initializeServices() async {
-    final database = await AppDatabase().initDatabase();
-    _localService = LocalUserService(database);
-    _firebaseService = FirebaseUserService();
-    _userRepository = UserRepository(_localService, _firebaseService);
-  }
+  final AuthService _authService = AuthService();
 
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
@@ -52,43 +34,33 @@ class _RegisterState extends State<Register> {
               ? 'https://example.com/default_avatar.png'
               : _avatarUrlController.text.trim();
 
+      setState(() => _isLoading = true);
+
       try {
-        final authService = AuthService();
-        final hashedPassword = authService.hashPassword(password);
-        final user = UserModel(
-          id: DateTime.now().millisecondsSinceEpoch,
-          name: name,
-          email: email,
-          password: hashedPassword,
-          avatarUrl: null,
-          createdAt: DateTime.now().toIso8601String(),
-          updatedAt: DateTime.now().toIso8601String(),
+        final result = await _authService.register(
+          email,
+          password,
+          name,
+          avatarUrl,
         );
+        setState(() => _isLoading = false);
 
-        await _localService.insertOrUpdateUser(user);
-        await _userRepository.uploadUserToFirebase(user);
-        await _userRepository.syncFromFirebase();
-
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Đăng ký thành công!')));
-
-        await _logAllUsers();
-        Navigator.pushReplacementNamed(context, '/Login');
+        if (result == null) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Đăng ký thành công!')));
+          Navigator.pushReplacementNamed(context, '/Login');
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(result)));
+        }
       } catch (e) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Đăng ký thất bại: $e')));
       }
-    }
-  }
-
-  Future<void> _logAllUsers() async {
-    final users = await _localService.getAllUsers();
-    for (var user in users) {
-      print(
-        'User: ${user.name}, Email: ${user.email}, Avatar URL: ${user.avatarUrl}',
-      );
     }
   }
 
@@ -159,7 +131,9 @@ class _RegisterState extends State<Register> {
                 if (value == null || value.isEmpty) {
                   return 'Vui lòng nhập email';
                 }
-                if (!value.contains('@')) {
+                if (!RegExp(
+                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                ).hasMatch(value)) {
                   return 'Email không hợp lệ';
                 }
                 return null;
@@ -212,7 +186,7 @@ class _RegisterState extends State<Register> {
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _register,
+                    onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       backgroundColor: const Color.fromARGB(255, 189, 90, 90),
@@ -220,14 +194,19 @@ class _RegisterState extends State<Register> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text(
-                      'Đăng ký',
-                      style: GoogleFonts.roboto(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child:
+                        _isLoading
+                            ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                            : Text(
+                              'Đăng ký',
+                              style: GoogleFonts.roboto(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                   ),
                 ),
               ),
