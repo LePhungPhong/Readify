@@ -4,7 +4,7 @@ import 'package:readify/controllers/local_book_controller.dart';
 import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/models/book_model.dart';
 import 'package:readify/views/docsachs/detail_book.dart';
-import 'package:readify/views/signIn_signUp/Login_Signup.dart';
+import 'package:readify/views/settings/settings_page.dart';
 
 class UserInfoScreen extends StatelessWidget {
   final Color mainColor = const Color(0xFFB74F4F);
@@ -179,6 +179,18 @@ class UserInfoScreen extends StatelessWidget {
           'Thông tin người dùng',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white),
+            tooltip: 'Cài đặt',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<UserModel?>(
         future: _loadUserData(),
@@ -197,7 +209,7 @@ class UserInfoScreen extends StatelessWidget {
           return SingleChildScrollView(
             child: Column(
               children: [
-                // Nền đỏ trên cùng, bo tròn đáy
+                // Header
                 Container(
                   height: 160,
                   decoration: BoxDecoration(
@@ -234,15 +246,11 @@ class UserInfoScreen extends StatelessWidget {
                   ),
                 ),
 
-                // Card chứa avatar + info lệch trái, nổi bật
+                // User Info Card
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(20),
-                  transform: Matrix4.translationValues(
-                    0,
-                    -40,
-                    0,
-                  ), // kéo lên chồng lên nền đỏ một chút
+                  transform: Matrix4.translationValues(0, -40, 0),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -257,7 +265,6 @@ class UserInfoScreen extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Avatar
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -282,10 +289,7 @@ class UserInfoScreen extends StatelessWidget {
                                       as ImageProvider,
                         ),
                       ),
-
                       const SizedBox(width: 24),
-
-                      // Thông tin người dùng (tên, email)
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,7 +341,7 @@ class UserInfoScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // Phần sách của tôi & yêu thích
+                // Book Sections
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
@@ -355,33 +359,6 @@ class UserInfoScreen extends StatelessWidget {
                         context,
                       ),
                     ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    await AuthService().logout();
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/Login',
-                      (route) => false,
-                    );
-                  },
-                  icon: Icon(Icons.logout, color: Colors.white),
-                  label: Text(
-                    "Đăng xuất",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.redAccent,
-                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 5,
-                    shadowColor: Colors.redAccent.withOpacity(0.5),
                   ),
                 ),
 

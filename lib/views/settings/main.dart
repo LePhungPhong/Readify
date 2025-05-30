@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:readify/views/settings/settings_page.dart';
-import 'package:readify/views/settings/my_library.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'settings_page.dart'; // import SettingsPage
 import 'package:readify/views/about_page/user_info_screen.dart';
+import 'package:readify/views/settings/my_library.dart';
 
+// Notifier toàn cục
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 final ValueNotifier<String> languageNotifier = ValueNotifier('Tiếng Việt');
 final ValueNotifier<double> fontSizeNotifier = ValueNotifier(16.0);
@@ -22,27 +24,45 @@ class MyApp extends StatelessWidget {
         return ValueListenableBuilder<double>(
           valueListenable: fontSizeNotifier,
           builder: (context, currentFontSize, __) {
-            return MaterialApp(
-              title: 'Readify',
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData(
-                useMaterial3: true,
-                colorSchemeSeed: Colors.red,
-                brightness: Brightness.light,
-                textTheme: ThemeData.light().textTheme.apply(
-                  fontSizeFactor: currentFontSize / 16,
-                ),
-              ),
-              darkTheme: ThemeData(
-                useMaterial3: true,
-                colorSchemeSeed: Colors.red,
-                brightness: Brightness.dark,
-                textTheme: ThemeData.dark().textTheme.apply(
-                  fontSizeFactor: currentFontSize / 16,
-                ),
-              ),
-              themeMode: currentTheme,
-              home: const HomePage(),
+            return ValueListenableBuilder<String>(
+              valueListenable: languageNotifier,
+              builder: (context, currentLanguage, ___) {
+                final locale =
+                    currentLanguage == 'English'
+                        ? const Locale('en')
+                        : const Locale('vi');
+
+                return MaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  title: 'Readify',
+                  locale: locale,
+                  supportedLocales: const [Locale('vi'), Locale('en')],
+                  localizationsDelegates: const [
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
+                  ],
+                  themeMode: currentTheme,
+                  theme: ThemeData(
+                    useMaterial3: true,
+                    colorSchemeSeed: Colors.red,
+                    brightness: Brightness.light,
+                    textTheme: ThemeData.light().textTheme.apply(
+                      fontSizeFactor: currentFontSize / 16,
+                    ),
+                  ),
+                  darkTheme: ThemeData.from(
+                    colorScheme: ColorScheme.fromSeed(
+                      seedColor: Colors.red,
+                      brightness: Brightness.dark,
+                    ),
+                    textTheme: ThemeData.dark().textTheme.apply(
+                      fontSizeFactor: currentFontSize / 16,
+                    ),
+                  ),
+                  home: const HomePage(),
+                );
+              },
             );
           },
         );
@@ -165,9 +185,7 @@ class HomePage extends StatelessWidget {
               DropdownMenuItem(value: 'English', child: Text('English')),
             ],
             onChanged: (value) {
-              if (value != null) {
-                languageNotifier.value = value;
-              }
+              if (value != null) languageNotifier.value = value;
             },
           );
         },
@@ -208,7 +226,7 @@ class HomePage extends StatelessWidget {
       leading: const Icon(Icons.logout),
       title: const Text('Đăng xuất'),
       onTap: () {
-        Navigator.pop(context); // Đóng Drawer
+        Navigator.pop(context);
       },
     );
   }
