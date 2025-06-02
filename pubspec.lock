@@ -310,7 +310,6 @@ packages:
     source: hosted
     version: "3.3.0"
   intl:
-  rating-book
     dependency: "direct main"
     description:
       name: intl
