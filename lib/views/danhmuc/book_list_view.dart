@@ -77,20 +77,36 @@ class _BookListViewState extends State<BookListView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   "Recently Added",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black26,
-                        offset: Offset(1, 1),
-                        blurRadius: 2,
+                  style:
+                      Theme.of(context).textTheme.titleLarge?.copyWith(
+                        //
+                        fontWeight: FontWeight.bold, //
+                        color: Colors.white, //
+                        shadows: const [
+                          //
+                          Shadow(
+                            color: Colors.black26, //
+                            offset: Offset(1, 1), //
+                            blurRadius: 2, //
+                          ),
+                        ],
+                      ) ??
+                      const TextStyle(
+                        //
+                        fontSize: 22, //
+                        fontWeight: FontWeight.bold, //
+                        color: Colors.white, //
+                        shadows: [
+                          //
+                          Shadow(
+                            color: Colors.black26, //
+                            offset: Offset(1, 1), //
+                            blurRadius: 2, //
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
                 ),
 
                 const SizedBox(height: 12),
@@ -103,13 +119,18 @@ class _BookListViewState extends State<BookListView> {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
+                        return Center(
                           child: Text(
                             "Không có sách mới.",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  color: Colors.white70, //
+                                ) ??
+                                const TextStyle(
+                                  //
+                                  color: Colors.white70, //
+                                  fontSize: 16, //
+                                ),
                           ),
                         );
                       }
@@ -197,18 +218,35 @@ class _BookListViewState extends State<BookListView> {
                                       textAlign: TextAlign.center,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
-                                        fontSize: 15,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black26,
-                                            offset: Offset(1, 1),
-                                            blurRadius: 2,
+                                      style:
+                                          Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.w600, //
+                                            color: Colors.white, //
+                                            shadows: const [
+                                              //
+                                              Shadow(
+                                                color: Colors.black26, //
+                                                offset: Offset(1, 1), //
+                                                blurRadius: 2, //
+                                              ),
+                                            ],
+                                          ) ??
+                                          const TextStyle(
+                                            //
+                                            fontWeight: FontWeight.w600, //
+                                            color: Colors.white, //
+                                            fontSize: 15, //
+                                            shadows: [
+                                              //
+                                              Shadow(
+                                                color: Colors.black26, //
+                                                offset: Offset(1, 1), //
+                                                blurRadius: 2, //
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
                                     ),
                                   ],
                                 ),
@@ -236,21 +274,36 @@ class _BookListViewState extends State<BookListView> {
 
           const SizedBox(height: 30),
 
-          // Categories Section
-          const Text(
+          Text(
             "Thể loại",
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFBD5A5A),
-              shadows: [
-                Shadow(
-                  color: Colors.black26,
-                  offset: Offset(1, 1),
-                  blurRadius: 2,
+            style:
+                Theme.of(context).textTheme.titleLarge?.copyWith(
+                  //
+                  fontWeight: FontWeight.bold, //
+                  color: const Color(0xFFBD5A5A), //
+                  shadows: const [
+                    //
+                    Shadow(
+                      color: Colors.black26, //
+                      offset: Offset(1, 1), //
+                      blurRadius: 2, //
+                    ),
+                  ],
+                ) ??
+                const TextStyle(
+                  //
+                  fontSize: 22, //
+                  fontWeight: FontWeight.bold, //
+                  color: Color(0xFFBD5A5A), //
+                  shadows: [
+                    //
+                    Shadow(
+                      color: Colors.black26, //
+                      offset: Offset(1, 1), //
+                      blurRadius: 2, //
+                    ),
+                  ],
                 ),
-              ],
-            ),
           ),
           const SizedBox(height: 12),
           _buildCategories(context),
@@ -268,16 +321,24 @@ class _BookListViewState extends State<BookListView> {
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          // Nếu không có dữ liệu thì bạn có thể show thông báo hoặc không
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
               "$title: Không có sách nào.",
-              style: const TextStyle(
-                fontSize: 16,
-                fontStyle: FontStyle.italic,
-                color: Colors.grey,
-              ),
+              // Sử dụng bodyLarge từ textTheme để kích thước chữ có thể điều chỉnh
+              style:
+                  Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    //
+                    fontStyle: FontStyle.italic, //
+                    color: Colors.grey, //
+                  ) ??
+                  const TextStyle(
+                    //
+                    // Fallback nếu textTheme.bodyLarge là null hoặc không có copyWith
+                    fontSize: 16, //
+                    fontStyle: FontStyle.italic, //
+                    color: Colors.grey, //
+                  ),
             ),
           );
         }
@@ -288,18 +349,35 @@ class _BookListViewState extends State<BookListView> {
           children: [
             Text(
               '$title (${books.length})',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFFBD5A5A),
-                shadows: [
-                  Shadow(
-                    color: Colors.black26,
-                    offset: Offset(1, 1),
-                    blurRadius: 2,
+              // Sử dụng titleLarge từ textTheme cho tiêu đề phần sách
+              style:
+                  Theme.of(context).textTheme.titleLarge?.copyWith(
+                    //
+                    fontWeight: FontWeight.bold, //
+                    color: const Color(0xFFBD5A5A), //
+                    shadows: const [
+                      //
+                      Shadow(
+                        color: Colors.black26, //
+                        offset: Offset(1, 1), //
+                        blurRadius: 2, //
+                      ),
+                    ],
+                  ) ??
+                  const TextStyle(
+                    //
+                    fontSize: 20, //
+                    fontWeight: FontWeight.bold, //
+                    color: Color(0xFFBD5A5A), //
+                    shadows: [
+                      //
+                      Shadow(
+                        color: Colors.black26, //
+                        offset: Offset(1, 1), //
+                        blurRadius: 2, //
+                      ),
+                    ],
                   ),
-                ],
-              ),
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -385,11 +463,20 @@ class _BookListViewState extends State<BookListView> {
                                 book.title ?? 'Không có tiêu đề',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
-                                ),
+                                // Sử dụng bodySmall từ textTheme
+                                style:
+                                    Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w500, //
+                                      color: Colors.black87, //
+                                    ) ??
+                                    const TextStyle(
+                                      //
+                                      fontSize: 13, //
+                                      fontWeight: FontWeight.w500, //
+                                      color: Colors.black87, //
+                                    ),
                               ),
                             ),
                           ],
@@ -466,18 +553,35 @@ class _BookListViewState extends State<BookListView> {
                 child: Center(
                   child: Text(
                     category,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black87,
-                          offset: Offset(2, 2),
-                          blurRadius: 3,
+                    // Sử dụng titleMedium từ textTheme cho tên danh mục
+                    style:
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
+                          //
+                          color: Colors.white, //
+                          fontWeight: FontWeight.bold, //
+                          shadows: const [
+                            //
+                            Shadow(
+                              color: Colors.black87, //
+                              offset: Offset(2, 2), //
+                              blurRadius: 3, //
+                            ),
+                          ],
+                        ) ??
+                        const TextStyle(
+                          //
+                          fontSize: 18, //
+                          color: Colors.white, //
+                          fontWeight: FontWeight.bold, //
+                          shadows: [
+                            //
+                            Shadow(
+                              color: Colors.black87, //
+                              offset: Offset(2, 2), //
+                              blurRadius: 3, //
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
                   ),
                 ),
               ),

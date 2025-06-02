@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readify/controllers/Phong/AuthService.dart';
-import 'package:readify/views/danhmuc/home_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:readify/views/settings/setting.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
@@ -49,7 +49,7 @@ class _LoginState extends State<Login> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => HomeView(user: user)),
+          MaterialPageRoute(builder: (_) => HomePage(user: user)),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

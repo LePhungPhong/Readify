@@ -53,16 +53,36 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
       context: context,
       builder:
           (_) => AlertDialog(
-            title: const Text("Xoá bình luận"),
-            content: const Text("Bạn có chắc muốn xoá bình luận này?"),
+            title: Text(
+              "Xoá bình luận",
+              style:
+                  Theme.of(context).textTheme.titleLarge, // Sử dụng titleLarge
+            ),
+            content: Text(
+              "Bạn có chắc muốn xoá bình luận này?",
+              style:
+                  Theme.of(context).textTheme.bodyMedium, // Sử dụng bodyMedium
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text("Huỷ"),
+                child: Text(
+                  "Huỷ",
+                  style:
+                      Theme.of(
+                        context,
+                      ).textTheme.labelLarge, // Sử dụng labelLarge
+                ),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text("Xoá"),
+                child: Text(
+                  "Xoá",
+                  style:
+                      Theme.of(
+                        context,
+                      ).textTheme.labelLarge, // Sử dụng labelLarge
+                ),
               ),
             ],
           ),
@@ -90,7 +110,7 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
       children: List.generate(5, (index) {
         return Icon(
           Icons.star,
-          size: 16,
+          size: 16, // Kích thước icon có thể giữ nguyên hoặc được quản lý riêng
           color: index < rating ? Colors.orange : Colors.grey,
         );
       }),
@@ -121,16 +141,30 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
         ),
         TextField(
           controller: _commentController,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'Nhập bình luận của bạn...',
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
+            hintStyle:
+                Theme.of(
+                  context,
+                ).textTheme.bodyMedium, // Sử dụng bodyMedium cho hintText
           ),
+          style:
+              Theme.of(
+                context,
+              ).textTheme.bodyMedium, // Sử dụng bodyMedium cho text input
           maxLines: 2,
         ),
         const SizedBox(height: 8),
         ElevatedButton(
           onPressed: _submitComment,
-          child: Text(_editingCommentId != null ? "Cập nhật" : "Gửi đánh giá"),
+          child: Text(
+            _editingCommentId != null ? "Cập nhật" : "Gửi đánh giá",
+            style:
+                Theme.of(
+                  context,
+                ).textTheme.bodyLarge, // Sử dụng bodyLarge cho nút
+          ),
         ),
         const SizedBox(height: 20),
 
@@ -142,7 +176,15 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
             if (!snapshot.hasData) return const CircularProgressIndicator();
 
             final docs = snapshot.data!.docs;
-            if (docs.isEmpty) return const Text("Chưa có đánh giá nào.");
+            if (docs.isEmpty) {
+              return Text(
+                "Chưa có đánh giá nào.",
+                style:
+                    Theme.of(
+                      context,
+                    ).textTheme.bodyMedium, // Sử dụng bodyMedium
+              );
+            }
 
             double avgRating = 0;
             for (var doc in docs) {
@@ -156,10 +198,9 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
               children: [
                 Text(
                   "⭐ ${avgRating.toStringAsFixed(1)} (${docs.length} đánh giá)",
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                  ),
+                  ), // Sử dụng titleMedium (mặc định 16)
                 ),
                 const SizedBox(height: 10),
                 ...docs.map((doc) {
@@ -180,19 +221,32 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
                                 ),
                               )
                               : const CircleAvatar(child: Icon(Icons.person)),
-                      title: Text(data['userName'] ?? 'Ẩn danh'),
+                      title: Text(
+                        data['userName'] ?? 'Ẩn danh',
+                        style:
+                            Theme.of(context)
+                                .textTheme
+                                .titleSmall, // Sử dụng titleSmall (mặc định 14)
+                      ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(data['content']),
+                          Text(
+                            data['content'],
+                            style:
+                                Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium, // Sử dụng bodyMedium (mặc định 14)
+                          ),
                           const SizedBox(height: 4),
                           _buildStarRow(data['rating']),
                           Text(
                             date,
-                            style: const TextStyle(
-                              fontSize: 10,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(
                               color: Colors.grey,
-                            ),
+                            ), // Sử dụng bodySmall (mặc định 12)
                           ),
                         ],
                       ),
@@ -206,13 +260,25 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
                                 },
                                 itemBuilder:
                                     (_) => [
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: 'edit',
-                                        child: Text("Sửa"),
+                                        child: Text(
+                                          "Sửa",
+                                          style:
+                                              Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium, // Sử dụng bodyMedium
+                                        ),
                                       ),
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: 'delete',
-                                        child: Text("Xoá"),
+                                        child: Text(
+                                          "Xoá",
+                                          style:
+                                              Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium, // Sử dụng bodyMedium
+                                        ),
                                       ),
                                     ],
                               )

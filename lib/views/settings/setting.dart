@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:readify/models/Phong/user_model.dart';
+import 'package:readify/views/danhmuc/book_list_view.dart';
 import 'settings_page.dart'; // import SettingsPage
 import 'package:readify/views/about_page/user_info_screen.dart';
-import 'package:readify/views/settings/my_library.dart';
+import 'package:readify/main.dart'; // Import main.dart to access notifiers
 
-// Notifier toàn cục
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
-final ValueNotifier<String> languageNotifier = ValueNotifier('Tiếng Việt');
-final ValueNotifier<double> fontSizeNotifier = ValueNotifier(16.0);
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  MyApp({super.key});
+class SettingPage extends StatelessWidget {
+  final UserModel user;
+  const SettingPage({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +26,10 @@ class MyApp extends StatelessWidget {
                         ? const Locale('en')
                         : const Locale('vi');
 
+                // Thêm kiểm tra an toàn cho fontSizeFactor tại đây cũng
+                final double safeFontSizeFactor =
+                    currentFontSize > 0 ? currentFontSize / 16.0 : 1.0;
+
                 return MaterialApp(
                   debugShowCheckedModeBanner: false,
                   title: 'Readify',
@@ -48,7 +46,8 @@ class MyApp extends StatelessWidget {
                     colorSchemeSeed: Colors.red,
                     brightness: Brightness.light,
                     textTheme: ThemeData.light().textTheme.apply(
-                      fontSizeFactor: currentFontSize / 16,
+                      fontSizeFactor:
+                          safeFontSizeFactor, // Sử dụng biến an toàn
                     ),
                   ),
                   darkTheme: ThemeData.from(
@@ -57,10 +56,11 @@ class MyApp extends StatelessWidget {
                       brightness: Brightness.dark,
                     ),
                     textTheme: ThemeData.dark().textTheme.apply(
-                      fontSizeFactor: currentFontSize / 16,
+                      fontSizeFactor:
+                          safeFontSizeFactor, // Sử dụng biến an toàn
                     ),
                   ),
-                  home: const HomePage(),
+                  home: HomePage(user: user),
                 );
               },
             );
@@ -72,7 +72,8 @@ class MyApp extends StatelessWidget {
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final UserModel user;
+  const HomePage({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +97,9 @@ class HomePage extends StatelessWidget {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const UserInfoScreen()),
+              MaterialPageRoute(
+                builder: (context) => UserInfoScreen(user: user),
+              ),
             );
           },
         ),
@@ -104,7 +107,7 @@ class HomePage extends StatelessWidget {
           icon: const Icon(Icons.settings),
           tooltip: 'Cài đặt',
           onPressed: () {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const SettingsPage()),
             );
@@ -120,7 +123,6 @@ class HomePage extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           _buildDrawerHeader(context),
-          _buildLibraryTile(context),
           _buildThemeSwitchTile(),
           _buildLanguageDropdownTile(),
           _buildFontSizeDropdownTile(),
@@ -137,19 +139,6 @@ class HomePage extends StatelessWidget {
         'Menu',
         style: TextStyle(color: Colors.white, fontSize: 24),
       ),
-    );
-  }
-
-  ListTile _buildLibraryTile(BuildContext context) {
-    return ListTile(
-      leading: const Icon(Icons.library_books),
-      title: const Text('Thư viện của tôi'),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const MyLibraryPage()),
-        );
-      },
     );
   }
 
@@ -236,10 +225,7 @@ class HomePage extends StatelessWidget {
       child: ValueListenableBuilder<double>(
         valueListenable: fontSizeNotifier,
         builder: (context, currentFontSize, _) {
-          return Text(
-            'Nội dung chính',
-            style: TextStyle(fontSize: currentFontSize),
-          );
+          return BookListView(user: user);
         },
       ),
     );

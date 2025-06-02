@@ -51,6 +51,8 @@ class UserCommentHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme; // Access TextTheme here
+
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: _fetchUserComments(),
       builder: (context, snapshot) {
@@ -60,15 +62,26 @@ class UserCommentHistory extends StatelessWidget {
         final comments = snapshot.data ?? [];
 
         if (comments.isEmpty) {
-          return const Text("Bạn chưa có bình luận nào.");
+          return Center(
+            child: Text(
+              "Bạn chưa có bình luận nào.",
+              // ONLY MODIFYING FONT SIZE
+              style: textTheme.bodyMedium?.copyWith(
+                fontStyle: FontStyle.italic,
+              ), // Original was default Text size (often 14-16)
+            ),
+          );
         }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "📄 Lịch sử bình luận của bạn",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              // ONLY MODIFYING FONT SIZE
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ), // Original fontSize: 16
             ),
             const SizedBox(height: 8),
             ...comments.map((comment) {
@@ -76,19 +89,32 @@ class UserCommentHistory extends StatelessWidget {
                 'dd/MM/yyyy HH:mm',
               ).format(DateTime.parse(comment['timestamp']));
               return Card(
+                margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
-                  title: Text(comment['bookTitle']),
+                  title: Text(
+                    comment['bookTitle'],
+                    // ONLY MODIFYING FONT SIZE
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ), // Original was default Text size (often 14)
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(comment['content']),
+                      Text(
+                        comment['content'],
+                        // ONLY MODIFYING FONT SIZE
+                        style:
+                            textTheme
+                                .bodyMedium, // Original was default Text size (often 14-16)
+                      ),
                       _buildStarRow(comment['rating']),
                       Text(
                         date,
-                        style: const TextStyle(
-                          fontSize: 10,
+                        // ONLY MODIFYING FONT SIZE
+                        style: textTheme.bodySmall?.copyWith(
                           color: Colors.grey,
-                        ),
+                        ), // Original fontSize: 10
                       ),
                     ],
                   ),

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:readify/views/settings/main.dart';
 import 'package:readify/views/signIn_signUp/Login_Signup.dart';
+import 'package:readify/main.dart'; // import thêm để dùng themeNotifier, languageNotifier, fontSizeNotifier
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
   static const Color mainColor = Color(0xFFB74F4F);
 
   @override
@@ -21,7 +26,6 @@ class SettingsPage extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         children: [
           _buildSectionCard(
-            context,
             icon: Icons.brightness_6,
             title: 'Chế độ sáng/tối',
             child: ValueListenableBuilder<ThemeMode>(
@@ -40,7 +44,6 @@ class SettingsPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildSectionCard(
-            context,
             icon: Icons.language,
             title: 'Ngôn ngữ',
             child: ValueListenableBuilder<String>(
@@ -48,6 +51,7 @@ class SettingsPage extends StatelessWidget {
               builder: (context, currentLanguage, _) {
                 return DropdownButton<String>(
                   value: currentLanguage,
+                  icon: const Icon(Icons.arrow_drop_down),
                   onChanged: (value) {
                     if (value != null) languageNotifier.value = value;
                   },
@@ -64,13 +68,13 @@ class SettingsPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           _buildSectionCard(
-            context,
             icon: Icons.format_size,
             title: 'Cỡ chữ',
             child: ValueListenableBuilder<double>(
               valueListenable: fontSizeNotifier,
               builder: (context, currentFontSize, _) {
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Slider(
                       value: currentFontSize,
@@ -110,7 +114,7 @@ class SettingsPage extends StatelessWidget {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginSignup()),
-                (Route<dynamic> route) => false,
+                (route) => false,
               );
             },
           ),
@@ -119,8 +123,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionCard(
-    BuildContext context, {
+  Widget _buildSectionCard({
     required IconData icon,
     required String title,
     required Widget child,
@@ -131,6 +134,7 @@ class SettingsPage extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(icon, color: mainColor),
             const SizedBox(width: 16),

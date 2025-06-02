@@ -91,6 +91,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
   }
 
   Widget _buildBookGridItem(Book book) {
+    final textTheme =
+        Theme.of(context).textTheme; // Access the theme's text styles
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -126,11 +129,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
           const SizedBox(height: 8),
           Text(
             book.title ?? 'Không có tiêu đề',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+            style: textTheme.titleSmall?.copyWith(
               color: Colors.black87,
-            ),
+            ), // Apply titleSmall
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -139,7 +140,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
             book.authors.isNotEmpty
                 ? book.authors.join(", ")
                 : 'Tác giả không rõ',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: textTheme.bodyMedium?.copyWith(
+              color: Colors.grey,
+            ), // Apply bodyMedium
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -150,6 +153,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme =
+        Theme.of(context).textTheme; // Access the theme's text styles
+
     return Scaffold(
       body:
           _isLoading
@@ -163,11 +169,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text(
                         widget.topic.toUpperCase(),
-                        style: const TextStyle(
+                        style: textTheme.headlineMedium?.copyWith(
                           color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        ), // Apply headlineMedium
                       ),
                       centerTitle: true,
                       background: Stack(
@@ -210,11 +214,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                         children: [
                           Text(
                             'Sách (${_controller.totalCount ?? _books.length})',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFBD5A5A),
-                            ),
+                            style: textTheme.titleLarge?.copyWith(
+                              color: const Color(0xFFBD5A5A),
+                            ), // Apply titleLarge
                           ),
                           const SizedBox(height: 16),
                           GridView.builder(
