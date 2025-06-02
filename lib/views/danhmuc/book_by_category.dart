@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:readify/controllers/book_controller.dart';
+import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/models/book_model.dart';
 import 'package:readify/views/docsachs/detail_book.dart';
 
 class BooksByCategoryPage extends StatefulWidget {
   final String topic;
+  final UserModel user;
 
-  const BooksByCategoryPage({required this.topic, super.key});
+  const BooksByCategoryPage({
+    required this.topic,
+    required this.user,
+    super.key,
+  });
 
   @override
   State<BooksByCategoryPage> createState() => _BooksByCategoryPageState();
@@ -90,7 +96,8 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BookDetailPage(bookId: book.id),
+            builder:
+                (context) => BookDetailPage(bookId: book.id, user: widget.user),
           ),
         );
       },

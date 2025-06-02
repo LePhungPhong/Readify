@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:readify/controllers/Phong/AuthService.dart';
+import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/views/about_page/about_page.dart';
 import 'package:readify/views/about_page/user_info_screen.dart';
 import 'package:readify/views/danhmuc/book_by_category.dart';
@@ -9,7 +10,8 @@ import '../../models/book_model.dart';
 import '../../views/docsachs/detail_book.dart';
 
 class BookListView extends StatefulWidget {
-  const BookListView({Key? key}) : super(key: key);
+  final UserModel user;
+  const BookListView({Key? key, required this.user}) : super(key: key);
 
   @override
   _BookListViewState createState() => _BookListViewState();
@@ -125,8 +127,10 @@ class _BookListViewState extends State<BookListView> {
                                   context,
                                   MaterialPageRoute(
                                     builder:
-                                        (context) =>
-                                            BookDetailPage(bookId: book.id),
+                                        (context) => BookDetailPage(
+                                          bookId: book.id,
+                                          user: widget.user,
+                                        ),
                                   ),
                                 ).then((_) => {reloadData()});
                               },
@@ -313,7 +317,10 @@ class _BookListViewState extends State<BookListView> {
                           context,
                           MaterialPageRoute(
                             builder:
-                                (context) => BookDetailPage(bookId: book.id),
+                                (context) => BookDetailPage(
+                                  bookId: book.id,
+                                  user: widget.user,
+                                ),
                           ),
                         ).then((_) => {reloadData()});
                       },
@@ -426,7 +433,11 @@ class _BookListViewState extends State<BookListView> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BooksByCategoryPage(topic: topic),
+                    builder:
+                        (context) => BooksByCategoryPage(
+                          topic: topic,
+                          user: widget.user,
+                        ),
                   ),
                 );
               },
