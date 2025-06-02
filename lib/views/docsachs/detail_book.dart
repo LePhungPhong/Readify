@@ -1,14 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:readify/views/docsachs/read_book.dart';
+import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/models/book_model.dart';
+import 'package:readify/views/docsachs/rating_bar_widget.dart';
+import 'package:readify/views/docsachs/read_book.dart';
 import 'package:readify/controllers/local_book_controller.dart';
 
 class BookDetailPage extends StatefulWidget {
   final int bookId;
+  final UserModel user;
 
-  const BookDetailPage({super.key, required this.bookId});
+  const BookDetailPage({super.key, required this.bookId, required this.user});
 
   @override
   _BookDetailPageState createState() => _BookDetailPageState();
@@ -289,6 +292,17 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     textAlign: TextAlign.justify,
                   ),
                   const SizedBox(height: 40),
+                  Text(
+                    "Đánh giá và bình luận",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFBD5A5A),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  RatingBarWidget(bookId: widget.bookId, user: widget.user),
+                  SizedBox(height: 30),
                 ],
               ),
             );

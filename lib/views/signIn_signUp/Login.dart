@@ -49,7 +49,7 @@ class _LoginState extends State<Login> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => HomeView()),
+          MaterialPageRoute(builder: (_) => HomeView(user: user)),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

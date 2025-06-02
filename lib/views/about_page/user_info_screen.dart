@@ -3,13 +3,15 @@ import 'package:readify/controllers/Phong/AuthService.dart';
 import 'package:readify/controllers/local_book_controller.dart';
 import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/models/book_model.dart';
+import 'package:readify/views/about_page/user_comment_history.dart';
 import 'package:readify/views/docsachs/detail_book.dart';
 import 'package:readify/views/signIn_signUp/Login_Signup.dart';
 
 class UserInfoScreen extends StatelessWidget {
+  final UserModel user;
   final Color mainColor = const Color(0xFFB74F4F);
 
-  const UserInfoScreen({super.key});
+  const UserInfoScreen({super.key, required this.user});
 
   Future<UserModel?> _loadUserData() async {
     final authService = AuthService();
@@ -88,7 +90,8 @@ class UserInfoScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder:
-                                (context) => BookDetailPage(bookId: book.id),
+                                (context) =>
+                                    BookDetailPage(bookId: book.id, user: user),
                           ),
                         );
                       },
@@ -386,6 +389,7 @@ class UserInfoScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 40),
+                UserCommentHistory(user: user),
               ],
             ),
           );
