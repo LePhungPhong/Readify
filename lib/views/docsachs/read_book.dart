@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:epub_view/epub_view.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:readify/views/settings/settings_page.dart';
 
 class ReadingPage extends StatefulWidget {
   final String bookUrl;
@@ -74,7 +75,12 @@ class _ReadingPageState extends State<ReadingPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: const Text("📖 Đọc Sách")),
+        appBar: AppBar(
+          title: Text(
+            "📖 Đọc Sách",
+            style: Theme.of(context).textTheme.titleLarge, // Sử dụng titleLarge
+          ),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -91,10 +97,24 @@ class _ReadingPageState extends State<ReadingPage> {
                             .trim() ??
                         ''),
                 textAlign: TextAlign.start,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.black),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
+          ),
+        ],
       ),
       drawer: Drawer(
+        // EpubViewTableOfContents sẽ tự động kế thừa DefaultTextStyle hoặc textTheme từ context
+        // nên không cần điều chỉnh trực tiếp ở đây.
         child: EpubViewTableOfContents(controller: _epubController),
       ),
       body: EpubView(controller: _epubController),

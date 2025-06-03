@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:readify/controllers/book_controller.dart';
+import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/models/book_model.dart';
 import 'package:readify/views/docsachs/detail_book.dart';
 
 class BooksByCategoryPage extends StatefulWidget {
   final String topic;
+  final UserModel user;
 
-  const BooksByCategoryPage({required this.topic, super.key});
+  const BooksByCategoryPage({
+    required this.topic,
+    required this.user,
+    super.key,
+  });
 
   @override
   State<BooksByCategoryPage> createState() => _BooksByCategoryPageState();
@@ -85,12 +91,16 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
   }
 
   Widget _buildBookGridItem(Book book) {
+    final textTheme =
+        Theme.of(context).textTheme; // Access the theme's text styles
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => BookDetailPage(bookId: book.id),
+            builder:
+                (context) => BookDetailPage(bookId: book.id, user: widget.user),
           ),
         );
       },
@@ -119,11 +129,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
           const SizedBox(height: 8),
           Text(
             book.title ?? 'Không có tiêu đề',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+            style: textTheme.titleSmall?.copyWith(
               color: Colors.black87,
-            ),
+            ), // Apply titleSmall
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -132,7 +140,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
             book.authors.isNotEmpty
                 ? book.authors.join(", ")
                 : 'Tác giả không rõ',
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: textTheme.bodyMedium?.copyWith(
+              color: Colors.grey,
+            ), // Apply bodyMedium
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -143,6 +153,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme =
+        Theme.of(context).textTheme; // Access the theme's text styles
+
     return Scaffold(
       body:
           _isLoading
@@ -156,11 +169,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text(
                         widget.topic.toUpperCase(),
-                        style: const TextStyle(
+                        style: textTheme.headlineMedium?.copyWith(
                           color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        ), // Apply headlineMedium
                       ),
                       centerTitle: true,
                       background: Stack(
@@ -203,11 +214,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                         children: [
                           Text(
                             'Sách (${_controller.totalCount ?? _books.length})',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFBD5A5A),
-                            ),
+                            style: textTheme.titleLarge?.copyWith(
+                              color: const Color(0xFFBD5A5A),
+                            ), // Apply titleLarge
                           ),
                           const SizedBox(height: 16),
                           GridView.builder(

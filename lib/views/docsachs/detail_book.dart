@@ -1,14 +1,19 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:readify/views/docsachs/read_book.dart';
+import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/models/book_model.dart';
+import 'package:readify/views/docsachs/rating_bar_widget.dart';
+import 'package:readify/views/docsachs/read_book.dart';
 import 'package:readify/controllers/local_book_controller.dart';
+import 'package:readify/views/settings/settings_page.dart';
+// Không cần import 'package:readify/views/settings/setting.dart'; nếu nó không được dùng trực tiếp ở đây
 
 class BookDetailPage extends StatefulWidget {
   final int bookId;
+  final UserModel user;
 
-  const BookDetailPage({super.key, required this.bookId});
+  const BookDetailPage({super.key, required this.bookId, required this.user});
 
   @override
   _BookDetailPageState createState() => _BookDetailPageState();
@@ -66,12 +71,18 @@ class _BookDetailPageState extends State<BookDetailPage> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.black54),
+          Icon(
+            icon,
+            size: 18,
+            color: Colors.black54,
+          ), // Icon size can remain hardcoded or be part of a separate icon theme
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               "$label: $value",
-              style: const TextStyle(fontSize: 14, color: Colors.black87),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.black87,
+              ), // Sử dụng bodyMedium (mặc định 14)
             ),
           ),
         ],
@@ -85,16 +96,28 @@ class _BookDetailPageState extends State<BookDetailPage> {
       backgroundColor: const Color(0xFFFDFDFD),
       appBar: AppBar(
         backgroundColor: const Color(0xFFBD5A5A),
-        title: const Text(
+        // Sử dụng style từ Theme.of(context).appBarTheme.titleTextStyle hoặc titleLarge
+        title: Text(
           "Readify",
-          style: TextStyle(fontSize: 20, color: Colors.white),
+          style:
+              Theme.of(
+                context,
+              ).appBarTheme.titleTextStyle?.copyWith(color: Colors.white) ??
+              Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: Colors.white),
         ),
         centerTitle: true,
         leading: const BackButton(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search, color: Colors.white),
-            onPressed: () {},
+            icon: const Icon(Icons.settings, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
           ),
         ],
       ),
@@ -126,10 +149,9 @@ class _BookDetailPageState extends State<BookDetailPage> {
                   const SizedBox(height: 20),
                   Text(
                     book.title,
-                    style: const TextStyle(
-                      fontSize: 24,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                    ),
+                    ), // Sử dụng headlineSmall (mặc định 24)
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
@@ -137,7 +159,9 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     book.authors.isNotEmpty
                         ? book.authors.join(", ")
                         : "Tác giả không rõ",
-                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.black54,
+                    ), // Sử dụng bodyMedium (mặc định 14)
                   ),
                   const SizedBox(height: 10),
                   Row(
@@ -149,7 +173,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                             index < 4
                                 ? const Color(0xFFBD5A5A)
                                 : Colors.grey[300],
-                        size: 18,
+                        size: 18, // Icon size
                       );
                     }),
                   ),
@@ -221,9 +245,13 @@ class _BookDetailPageState extends State<BookDetailPage> {
                           ),
                           shape: const BeveledRectangleBorder(),
                         ),
-                        child: const Text(
+                        child: Text(
                           "Đọc",
-                          style: TextStyle(fontSize: 16, color: Colors.white),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(
+                            color: Colors.white,
+                          ), // Sử dụng bodyLarge (mặc định 16)
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -257,7 +285,7 @@ class _BookDetailPageState extends State<BookDetailPage> {
                         icon: Icon(
                           _isFavorite ? Icons.favorite : Icons.favorite_border,
                           color: const Color(0xFFBD5A5A),
-                          size: 28,
+                          size: 28, // Icon size
                         ),
                       ),
                     ],
@@ -265,13 +293,12 @@ class _BookDetailPageState extends State<BookDetailPage> {
                   const SizedBox(height: 30),
                   Container(
                     alignment: Alignment.centerLeft,
-                    child: const Text(
+                    child: Text(
                       "Giới thiệu sách",
-                      style: TextStyle(
-                        fontSize: 16,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFFBD5A5A),
-                      ),
+                        color: const Color(0xFFBD5A5A),
+                      ), // Sử dụng titleMedium (mặc định 16)
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -281,14 +308,23 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     book.summaries.isNotEmpty
                         ? book.summaries.join(", ")
                         : "Không có mô tả.",
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       height: 1.6,
                       color: Colors.black87,
-                    ),
+                    ), // Sử dụng bodyMedium (mặc định 14)
                     textAlign: TextAlign.justify,
                   ),
                   const SizedBox(height: 40),
+                  Text(
+                    "Đánh giá và bình luận",
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFFBD5A5A),
+                    ), // Sử dụng titleMedium (mặc định 16)
+                  ),
+                  const SizedBox(height: 10),
+                  RatingBarWidget(bookId: widget.bookId, user: widget.user),
+                  const SizedBox(height: 30),
                 ],
               ),
             );

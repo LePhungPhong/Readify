@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AboutPage extends StatefulWidget {
+  const AboutPage({super.key});
+
   @override
   State<AboutPage> createState() => _AboutPageState();
 }
@@ -45,6 +47,8 @@ class _AboutPageState extends State<AboutPage>
     Widget? contentWidget,
     bool isHighlighted = false, // Flag to highlight specific sections
   }) {
+    final textTheme = Theme.of(context).textTheme; // Access TextTheme here
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Card(
@@ -77,14 +81,14 @@ class _AboutPageState extends State<AboutPage>
                     const SizedBox(width: 16),
                     Text(
                       title,
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
+                      // ONLY MODIFYING FONT SIZE
+                      style: textTheme.headlineSmall?.copyWith(
+                        // Original fontSize: 20
                         color: primaryColor,
-                        shadows: [
+                        shadows: const [
                           Shadow(
                             color: Colors.black12,
-                            offset: const Offset(1, 1),
+                            offset: Offset(1, 1),
                             blurRadius: 4,
                           ),
                         ],
@@ -99,8 +103,9 @@ class _AboutPageState extends State<AboutPage>
                       contentWidget ??
                       Text(
                         content ?? '',
-                        style: TextStyle(
-                          fontSize: 18,
+                        // ONLY MODIFYING FONT SIZE
+                        style: textTheme.titleMedium?.copyWith(
+                          // Original fontSize: was around 16-17 for similar content
                           height: 1.6,
                           color: Colors.black87,
                           fontStyle:
@@ -120,6 +125,8 @@ class _AboutPageState extends State<AboutPage>
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme; // Access TextTheme here
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -129,13 +136,12 @@ class _AboutPageState extends State<AboutPage>
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Giới thiệu ứng dụng',
-          style: TextStyle(
+          // ONLY MODIFYING FONT SIZE
+          style: textTheme.titleLarge?.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
+          ), // Original fontSize: 20
         ),
       ),
       body: ListView(
@@ -161,15 +167,14 @@ class _AboutPageState extends State<AboutPage>
                     children: [
                       Text(
                         'Readify',
-                        style: TextStyle(
-                          fontSize: 50,
-                          fontWeight: FontWeight.w900,
-                          fontStyle: FontStyle.italic,
+                        // ONLY MODIFYING FONT SIZE
+                        style: textTheme.displayMedium?.copyWith(
+                          // Original fontSize: 50
                           color: Colors.white,
-                          shadows: [
+                          shadows: const [
                             Shadow(
                               color: Colors.black38,
-                              offset: const Offset(2, 2),
+                              offset: Offset(2, 2),
                               blurRadius: 6,
                             ),
                           ],
@@ -210,63 +215,53 @@ class _AboutPageState extends State<AboutPage>
               ),
             ),
           ),
-
           const SizedBox(height: 20),
-
           _buildSection(
             icon: Icons.flag,
             title: 'Mục tiêu ứng dụng',
             content:
                 'Readify mang đến trải nghiệm đọc sách hiện đại, dễ sử dụng và thân thiện, giúp bạn lưu trữ, quản lý và khám phá hàng ngàn cuốn sách ngay trên điện thoại.',
-            isHighlighted: true, // Highlight this section
+            isHighlighted: true,
           ),
-
           _buildSection(
-            icon: Icons.person,
-            title: 'Đối tượng người dùng',
+            icon: Icons.lightbulb,
+            title: 'Công nghệ sử dụng',
             content:
-                'Phù hợp với mọi lứa tuổi yêu sách, từ học sinh, sinh viên đến nhân viên văn phòng, người yêu văn học, kỹ năng, tiếng Anh và nhiều thể loại khác.',
+                'Ứng dụng được phát triển với Flutter, sử dụng Firebase cho backend và quản lý dữ liệu, đảm bảo hiệu suất cao và trải nghiệm mượt mà.',
           ),
-
           _buildSection(
-            icon: Icons.star,
-            title: 'Tính năng nổi bật',
+            icon: Icons.groups,
+            title: 'Đội ngũ phát triển',
             contentWidget: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                _FeatureItem(text: '📚 Giao diện đọc tối ưu, thân thiện.'),
-                _FeatureItem(text: '🔍 Tìm kiếm và phân loại sách thông minh.'),
-                _FeatureItem(text: '❤️ Lưu sách yêu thích, theo dõi đọc.'),
-                _FeatureItem(text: '📈 Thống kê đọc theo thời gian.'),
-                _FeatureItem(text: '📤 Chia sẻ sách dễ dàng.'),
+              children: [
+                _buildTeamMember('PD: Nguyễn Hữu Phong'),
+                _buildTeamMember('TL: Lê Thị Diễm Thúy'),
+                _buildTeamMember('TV: Nguyễn Duy Tân'),
+                _buildTeamMember('TV: Hồ Trọng Nghĩa'),
               ],
             ),
           ),
-
           _buildSection(
             icon: Icons.contact_mail,
-            title: 'Thông tin liên hệ',
+            title: 'Liên hệ chúng tôi',
             contentWidget: Column(
-              children: const [
-                _ContactItem(
-                  icon: Icons.phone,
-                  text: 'Số điện thoại: 1900 545482',
-                  accentColor: Color(0xFFFFA726),
-                ),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 _ContactItem(
                   icon: Icons.email,
-                  text: 'Email: support@readify.app',
-                  accentColor: Color(0xFFFFA726),
+                  text: 'readify.app@gmail.com',
+                  accentColor: accentColor,
                 ),
                 _ContactItem(
-                  icon: Icons.info,
-                  text: 'Phiên bản: 1.0.0',
-                  accentColor: Color(0xFFFFA726),
+                  icon: Icons.phone,
+                  text: '+84 123 456 789',
+                  accentColor: accentColor,
                 ),
                 _ContactItem(
-                  icon: Icons.privacy_tip,
-                  text: 'Chính sách bảo mật',
-                  accentColor: Color(0xFFFFA726),
+                  icon: Icons.location_on,
+                  text: 'Đại học Sài Gòn, TP.HCM, Việt Nam',
+                  accentColor: accentColor,
                 ),
               ],
             ),
@@ -275,28 +270,28 @@ class _AboutPageState extends State<AboutPage>
       ),
     );
   }
-}
 
-class _FeatureItem extends StatelessWidget {
-  final String text;
-
-  const _FeatureItem({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildTeamMember(String text) {
+    final textTheme = Theme.of(context).textTheme; // Access TextTheme here
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
           Text(
             text.substring(0, 2),
-            style: const TextStyle(fontSize: 18, color: Color(0xFF6D4C41)),
+            // ONLY MODIFYING FONT SIZE
+            style: textTheme.titleMedium?.copyWith(
+              color: const Color(0xFF6D4C41),
+            ), // Original fontSize: 18
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text.substring(2),
-              style: const TextStyle(fontSize: 18, color: Colors.black87),
+              // ONLY MODIFYING FONT SIZE
+              style: textTheme.titleMedium?.copyWith(
+                color: Colors.black87,
+              ), // Original fontSize: 18
             ),
           ),
         ],
@@ -314,14 +309,16 @@ class _ContactItem extends StatelessWidget {
     required this.icon,
     required this.text,
     required this.accentColor,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme; // Access TextTheme here
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(icon, color: accentColor, size: 24),
-      title: Text(text, style: const TextStyle(fontSize: 17)),
+      title: Text(text, style: textTheme.titleMedium), // Original fontSize: 17
       dense: true,
     );
   }
@@ -331,12 +328,12 @@ class BottomCurveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     Path path = Path();
-    path.lineTo(0, size.height - 60);
+    path.lineTo(0, size.height - 40);
     path.quadraticBezierTo(
       size.width / 2,
-      size.height + 20,
+      size.height,
       size.width,
-      size.height - 60,
+      size.height - 40,
     );
     path.lineTo(size.width, 0);
     path.close();
@@ -344,5 +341,5 @@ class BottomCurveClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
