@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:readify/database/db_helper.dart';
 import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/services/firebase_user_service.dart';
@@ -12,6 +13,7 @@ import 'package:uuid/uuid.dart';
 class AuthService {
   final CollectionReference _usersCollection = FirebaseFirestore.instance
       .collection('users');
+  final auth.FirebaseAuth _firebaseAuth = auth.FirebaseAuth.instance;
   late final LocalUserService _localService;
   late final FirebaseUserService _firebaseService;
   late final UserRepository _userRepository;
@@ -35,6 +37,15 @@ class AuthService {
 
   Future<UserModel?> login(String email, String password) async {
     try {
+      final credential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (!credential.user!.emailVerified) {
+        return null; // Email chưa được xác thực
+      }
+
       final querySnapshot =
           await _usersCollection
               .where('email', isEqualTo: email)
@@ -89,9 +100,18 @@ class AuthService {
         return 'Email đã được sử dụng. Vui lòng chọn email khác.';
       }
 
+      // Đăng ký với Firebase Authentication
+      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Gửi email xác thực
+      await credential.user!.sendEmailVerification();
+
       final hashedPassword = hashPassword(password);
       final user = UserModel(
-        id: const Uuid().v4().hashCode.abs(), // Sử dụng UUID cho ID duy nhất
+        id: const Uuid().v4().hashCode.abs(),
         email: email,
         password: hashedPassword,
         name: name,
@@ -115,6 +135,14 @@ class AuthService {
     } catch (e) {
       print('Đăng ký thất bại: $e');
       return 'Đăng ký thất bại: $e';
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      throw Exception('Gửi email đặt lại mật khẩu thất bại: $e');
     }
   }
 

@@ -39,7 +39,7 @@ class _LoginState extends State<Login> {
       setState(() => _isLoading = false);
 
       if (user != null) {
-        // 🔸 Lưu ID người dùng đang đăng nhập
+        // Lưu ID người dùng đang đăng nhập
         final prefs = await SharedPreferences.getInstance();
         await prefs.setInt('user_id', user.id!);
 
@@ -53,7 +53,11 @@ class _LoginState extends State<Login> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Email hoặc mật khẩu không đúng')),
+          const SnackBar(
+            content: Text(
+              'Email hoặc mật khẩu không đúng hoặc email chưa được xác thực.',
+            ),
+          ),
         );
       }
     } catch (e) {
@@ -76,7 +80,7 @@ class _LoginState extends State<Login> {
     }
 
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      await _authService.sendPasswordResetEmail(email);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(

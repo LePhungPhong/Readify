@@ -31,7 +31,7 @@ class _RegisterState extends State<Register> {
       final name = _usernameController.text.trim();
       final avatarUrl =
           _avatarUrlController.text.trim().isEmpty
-              ? 'https://example.com/default_avatar.png'
+              ? '<a href="https://example.com/default_avatar.png">https://example.com/default_avatar.png</a>'
               : _avatarUrlController.text.trim();
 
       setState(() => _isLoading = true);
@@ -46,9 +46,13 @@ class _RegisterState extends State<Register> {
         setState(() => _isLoading = false);
 
         if (result == null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Đăng ký thành công!')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
+              ),
+            ),
+          );
           Navigator.pushReplacementNamed(context, '/Login');
         } else {
           ScaffoldMessenger.of(
@@ -132,7 +136,7 @@ class _RegisterState extends State<Register> {
                   return 'Vui lòng nhập email';
                 }
                 if (!RegExp(
-                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  r'^[\w-.]+@([\w-]+.)+[\w-]{2,4}$',
                 ).hasMatch(value)) {
                   return 'Email không hợp lệ';
                 }
