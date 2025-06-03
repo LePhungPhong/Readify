@@ -68,20 +68,22 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
                 onPressed: () => Navigator.pop(context, false),
                 child: Text(
                   "Huỷ",
-                  style:
-                      Theme.of(
-                        context,
-                      ).textTheme.labelLarge, // Sử dụng labelLarge
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ), // Sử dụng labelLarge, màu từ theme
                 ),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.error, // Màu đỏ cho nút xoá
+                ),
                 child: Text(
                   "Xoá",
-                  style:
-                      Theme.of(
-                        context,
-                      ).textTheme.labelLarge, // Sử dụng labelLarge
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onError,
+                  ), // Sử dụng labelLarge, màu từ theme
                 ),
               ),
             ],
@@ -111,7 +113,14 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
         return Icon(
           Icons.star,
           size: 16, // Kích thước icon có thể giữ nguyên hoặc được quản lý riêng
-          color: index < rating ? Colors.orange : Colors.grey,
+          color:
+              index < rating
+                  ? Theme.of(context)
+                      .colorScheme
+                      .tertiary // Sử dụng màu từ theme cho sao được chọn
+                  : Theme.of(context).colorScheme.onSurface.withOpacity(
+                    0.38,
+                  ), // Màu từ theme cho sao chưa chọn
         );
       }),
     );
@@ -133,7 +142,14 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
             return IconButton(
               icon: Icon(
                 Icons.star,
-                color: index < _rating ? Colors.orange : Colors.grey,
+                color:
+                    index < _rating
+                        ? Theme.of(context)
+                            .colorScheme
+                            .tertiary // Sử dụng màu từ theme cho sao được chọn
+                        : Theme.of(context).colorScheme.onSurface.withOpacity(
+                          0.38,
+                        ), // Màu từ theme cho sao chưa chọn
               ),
               onPressed: () => setState(() => _rating = index + 1),
             );
@@ -144,20 +160,29 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
           decoration: InputDecoration(
             hintText: 'Nhập bình luận của bạn...',
             border: const OutlineInputBorder(),
-            hintStyle:
-                Theme.of(
-                  context,
-                ).textTheme.bodyMedium, // Sử dụng bodyMedium cho hintText
+            hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(
+                0.6,
+              ), // Sử dụng bodyMedium cho hintText, màu từ theme
+            ),
           ),
-          style:
-              Theme.of(
-                context,
-              ).textTheme.bodyMedium, // Sử dụng bodyMedium cho text input
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color:
+                Theme.of(context)
+                    .colorScheme
+                    .onSurface, // Sử dụng bodyMedium cho text input, màu từ theme
+          ),
           maxLines: 2,
         ),
         const SizedBox(height: 8),
         ElevatedButton(
           onPressed: _submitComment,
+          style: ElevatedButton.styleFrom(
+            backgroundColor:
+                Theme.of(context).colorScheme.primary, // Màu nền nút từ theme
+            foregroundColor:
+                Theme.of(context).colorScheme.onPrimary, // Màu chữ nút từ theme
+          ),
           child: Text(
             _editingCommentId != null ? "Cập nhật" : "Gửi đánh giá",
             style:
@@ -179,10 +204,11 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
             if (docs.isEmpty) {
               return Text(
                 "Chưa có đánh giá nào.",
-                style:
-                    Theme.of(
-                      context,
-                    ).textTheme.bodyMedium, // Sử dụng bodyMedium
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withOpacity(0.6),
+                ), // Sử dụng bodyMedium
               );
             }
 
@@ -200,6 +226,10 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
                   "⭐ ${avgRating.toStringAsFixed(1)} (${docs.length} đánh giá)",
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color:
+                        Theme.of(
+                          context,
+                        ).colorScheme.tertiary, // Sử dụng màu từ theme
                   ), // Sử dụng titleMedium (mặc định 16)
                 ),
                 const SizedBox(height: 10),
@@ -220,7 +250,15 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
                                   data['userAvatar'],
                                 ),
                               )
-                              : const CircleAvatar(child: Icon(Icons.person)),
+                              : CircleAvatar(
+                                child: Icon(
+                                  Icons.person,
+                                  color:
+                                      Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer, // Màu icon từ theme
+                                ),
+                              ),
                       title: Text(
                         data['userName'] ?? 'Ẩn danh',
                         style:
@@ -245,7 +283,10 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(
-                              color: Colors.grey,
+                              color:
+                                  Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant, // Sử dụng màu từ theme
                             ), // Sử dụng bodySmall (mặc định 12)
                           ),
                         ],
@@ -274,10 +315,14 @@ class _RatingBarWidgetState extends State<RatingBarWidget> {
                                         value: 'delete',
                                         child: Text(
                                           "Xoá",
-                                          style:
-                                              Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium, // Sử dụng bodyMedium
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.copyWith(
+                                            color:
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .error, // Màu chữ đỏ cho xoá
+                                          ), // Sử dụng bodyMedium
                                         ),
                                       ),
                                     ],

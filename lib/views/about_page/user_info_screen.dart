@@ -3,13 +3,12 @@ import 'package:readify/controllers/Phong/AuthService.dart';
 import 'package:readify/controllers/local_book_controller.dart';
 import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/models/book_model.dart';
-import 'package:readify/views/about_page/user_comment_history.dart';
 import 'package:readify/views/docsachs/detail_book.dart';
 import 'package:readify/views/settings/settings_page.dart';
 
 class UserInfoScreen extends StatelessWidget {
   final UserModel user;
-  final Color mainColor = const Color(0xFFB74F4F);
+  // final Color mainColor = const Color(0xFFB74F4F); // Remove this line
 
   const UserInfoScreen({super.key, required this.user});
 
@@ -34,11 +33,16 @@ class UserInfoScreen extends StatelessWidget {
     Future<List<Book>> futureBooks,
     BuildContext context,
   ) {
+    // Get the color scheme from the theme
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return FutureBuilder<List<Book>>(
       future: futureBooks,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: CircularProgressIndicator(color: colorScheme.primary),
+          );
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -46,10 +50,12 @@ class UserInfoScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
               "$title: Không có sách nào.",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontStyle: FontStyle.italic,
-                color: Colors.grey,
+                color:
+                    colorScheme
+                        .onSurfaceVariant, // Adjusted for better contrast
               ),
             ),
           );
@@ -61,11 +67,11 @@ class UserInfoScreen extends StatelessWidget {
           children: [
             Text(
               '$title (${books.length})',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFB74F4F),
-                shadows: [
+                color: colorScheme.primary, // Use primary color from theme
+                shadows: const [
                   Shadow(
                     color: Colors.black26,
                     offset: Offset(1, 1),
@@ -111,10 +117,14 @@ class UserInfoScreen extends StatelessWidget {
                                     fit: BoxFit.cover,
                                     errorBuilder:
                                         (_, __, ___) => Container(
-                                          color: Colors.grey[300],
-                                          child: const Icon(
+                                          color:
+                                              colorScheme
+                                                  .surfaceVariant, // Using a theme color
+                                          child: Icon(
                                             Icons.broken_image,
-                                            color: Colors.grey,
+                                            color:
+                                                colorScheme
+                                                    .onSurface, // Using a theme color
                                           ),
                                         ),
                                   )
@@ -122,10 +132,14 @@ class UserInfoScreen extends StatelessWidget {
                                   Container(
                                     width: 120,
                                     height: 160,
-                                    color: Colors.grey[300],
-                                    child: const Icon(
+                                    color:
+                                        colorScheme
+                                            .surfaceVariant, // Using a theme color
+                                    child: Icon(
                                       Icons.image_not_supported,
-                                      color: Colors.grey,
+                                      color:
+                                          colorScheme
+                                              .onSurface, // Using a theme color
                                     ),
                                   ),
                                 Positioned.fill(
@@ -152,10 +166,12 @@ class UserInfoScreen extends StatelessWidget {
                               book.title ?? 'Không có tiêu đề',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.black87,
+                                color:
+                                    colorScheme
+                                        .onSurface, // Using a theme color
                               ),
                             ),
                           ),
@@ -174,17 +190,27 @@ class UserInfoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the color scheme from the theme
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor:
+          colorScheme.background, // Use background color from theme
       appBar: AppBar(
-        backgroundColor: mainColor,
-        title: const Text(
+        backgroundColor: colorScheme.primary, // Use primary color from theme
+        title: Text(
           'Thông tin người dùng',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: colorScheme.onPrimary,
+            fontWeight: FontWeight.bold,
+          ), // Text color on primary
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
+            icon: Icon(
+              Icons.settings,
+              color: colorScheme.onPrimary,
+            ), // Icon color on primary
             tooltip: 'Cài đặt',
             onPressed: () {
               Navigator.push(
@@ -199,13 +225,20 @@ class UserInfoScreen extends StatelessWidget {
         future: _loadUserData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary),
+            );
           }
 
           final user = snapshot.data;
           if (user == null) {
-            return const Center(
-              child: Text('Không thể tải thông tin người dùng.'),
+            return Center(
+              child: Text(
+                'Không thể tải thông tin người dùng.',
+                style: TextStyle(
+                  color: colorScheme.error,
+                ), // Use error color for issues
+              ),
             );
           }
 
@@ -216,14 +249,14 @@ class UserInfoScreen extends StatelessWidget {
                 Container(
                   height: 160,
                   decoration: BoxDecoration(
-                    color: mainColor,
+                    color: colorScheme.primary, // Use primary color
                     borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(32),
                       bottomRight: Radius.circular(32),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: mainColor.withOpacity(0.6),
+                        color: colorScheme.primary.withOpacity(0.6),
                         offset: const Offset(0, 4),
                         blurRadius: 15,
                       ),
@@ -235,7 +268,9 @@ class UserInfoScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 60,
                         fontWeight: FontWeight.bold,
-                        color: mainColor.withOpacity(0.15),
+                        color: colorScheme.onPrimary.withOpacity(
+                          0.15,
+                        ), // Text color on primary with opacity
                         letterSpacing: 8,
                         shadows: const [
                           Shadow(
@@ -255,13 +290,15 @@ class UserInfoScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   transform: Matrix4.translationValues(0, -40, 0),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.surface, // Use surface color
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Colors.black12,
+                        color: colorScheme.shadow.withOpacity(
+                          0.12,
+                        ), // Use shadow color from theme
                         blurRadius: 15,
-                        offset: Offset(0, 8),
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
@@ -273,7 +310,9 @@ class UserInfoScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black26,
+                              color: colorScheme.shadow.withOpacity(
+                                0.26,
+                              ), // Use shadow color from theme
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -281,7 +320,8 @@ class UserInfoScreen extends StatelessWidget {
                         ),
                         child: CircleAvatar(
                           radius: 50,
-                          backgroundColor: Colors.white,
+                          backgroundColor:
+                              colorScheme.surface, // Use surface color
                           backgroundImage:
                               user.avatarUrl != null &&
                                       user.avatarUrl!.isNotEmpty
@@ -303,7 +343,7 @@ class UserInfoScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 26,
                                 fontWeight: FontWeight.bold,
-                                color: mainColor,
+                                color: colorScheme.primary, // Use primary color
                                 shadows: const [
                                   Shadow(
                                     color: Colors.black26,
@@ -316,10 +356,12 @@ class UserInfoScreen extends StatelessWidget {
                             const SizedBox(height: 8),
                             Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.email_outlined,
                                   size: 20,
-                                  color: Colors.grey,
+                                  color:
+                                      colorScheme
+                                          .onSurfaceVariant, // Use onSurfaceVariant for icons
                                 ),
                                 const SizedBox(width: 6),
                                 Flexible(
@@ -327,7 +369,9 @@ class UserInfoScreen extends StatelessWidget {
                                     user.email,
                                     style: TextStyle(
                                       fontSize: 16,
-                                      color: Colors.grey.shade600,
+                                      color:
+                                          colorScheme
+                                              .onSurfaceVariant, // Use onSurfaceVariant for secondary text
                                       fontStyle: FontStyle.italic,
                                     ),
                                     overflow: TextOverflow.ellipsis,
@@ -351,7 +395,7 @@ class UserInfoScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildBookSection(
-                        "Sách của tôi",
+                        "Lịch sử đọc sách",
                         _loadMyBooks(),
                         context,
                       ),
@@ -366,7 +410,6 @@ class UserInfoScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 40),
-                UserCommentHistory(user: user),
               ],
             ),
           );
