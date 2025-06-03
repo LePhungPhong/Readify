@@ -35,14 +35,9 @@ class AuthService {
     return digest.toString();
   }
 
-  Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_id');
-    print('Đã đăng xuất và xóa user_id khỏi SharedPreferences.');
-  }
-
   Future<UserModel?> login(String email, String password) async {
     try {
+      // Đăng nhập với Firebase Authentication
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -52,6 +47,9 @@ class AuthService {
         return null; // Email chưa được xác thực
       }
 
+      await _userRepository.syncPasswordFromFirebase(email, password);
+
+      // Lấy thông tin người dùng từ Firestore
       final querySnapshot =
           await _usersCollection
               .where('email', isEqualTo: email)
@@ -64,27 +62,53 @@ class AuthService {
         final storedPassword = userData['password'] as String;
 
         final hashedInputPassword = hashPassword(password);
-        if (storedPassword == hashedInputPassword) {
-          final user = UserModel.fromMap({
-            'id': userData['id'] as int,
-            'email': userData['email'] as String,
-            'password': userData['password'] as String,
-            'name': userData['name'] as String,
-            'avatar_url': userData['avatar_url'] as String?,
-            'created_at': userData['created_at'] as String?,
-            'updated_at': userData['updated_at'] as String?,
-          });
-
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setInt('user_id', user.id);
-
-          return user;
+        if (storedPassword != hashedInputPassword) {
+          // Cập nhật mật khẩu trong Firestore nếu không khớp
+          await _updatePasswordInFirestore(email, password);
         }
+
+        final user = UserModel.fromMap({
+          'id': userData['id'] as int,
+          'email': userData['email'] as String,
+          'password': hashedInputPassword,
+          'name': userData['name'] as String,
+          'avatar_url': userData['avatar_url'] as String?,
+          'created_at': userData['created_at'] as String?,
+          'updated_at': userData['updated_at'] as String?,
+        });
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('user_id', user.id);
+
+        return user;
       }
       return null;
     } catch (e) {
       print('Đăng nhập thất bại: $e');
       return null;
+    }
+  }
+
+  Future<void> _updatePasswordInFirestore(
+    String email,
+    String newPassword,
+  ) async {
+    try {
+      final querySnapshot =
+          await _usersCollection
+              .where('email', isEqualTo: email)
+              .limit(1)
+              .get();
+      if (querySnapshot.docs.isNotEmpty) {
+        final userDoc = querySnapshot.docs.first;
+        await userDoc.reference.update({
+          'password': hashPassword(newPassword),
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+        print('Mật khẩu đã được cập nhật trong Firestore cho email: $email');
+      }
+    } catch (e) {
+      print('Lỗi khi cập nhật mật khẩu trong Firestore: $e');
     }
   }
 
@@ -95,24 +119,11 @@ class AuthService {
     String? avatarUrl,
   ) async {
     try {
-      // Kiểm tra email trùng lặp
-      final querySnapshot =
-          await _usersCollection
-              .where('email', isEqualTo: email)
-              .limit(1)
-              .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        return 'Email đã được sử dụng. Vui lòng chọn email khác.';
-      }
-
-      // Đăng ký với Firebase Authentication
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Gửi email xác thực
       await credential.user!.sendEmailVerification();
 
       final hashedPassword = hashPassword(password);
@@ -126,14 +137,10 @@ class AuthService {
         updatedAt: DateTime.now().toIso8601String(),
       );
 
-      // Lưu vào Firestore
       await _usersCollection.doc(user.id.toString()).set(user.toMap());
-      // Lưu vào SQLite
       await _localService.insertOrUpdateUser(user);
-      // Đồng bộ từ Firestore
       await _userRepository.syncFromFirebase();
 
-      // Lưu user_id vào SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('user_id', user.id);
 

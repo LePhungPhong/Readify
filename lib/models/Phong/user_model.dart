@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+
 class UserModel {
   final int id;
   final String email;
-  final String password;
+  String _password; // Biến private với getter/setter
   final String name;
   final String? avatarUrl;
   final String? createdAt;
@@ -10,18 +13,31 @@ class UserModel {
   UserModel({
     required this.id,
     required this.email,
-    required this.password,
+    required String password,
     required this.name,
     this.avatarUrl,
     this.createdAt,
     this.updatedAt,
-  });
+  }) : _password = password;
+
+  String get password => _password;
+
+  set password(String newPassword) {
+    _password = hashPassword(newPassword); // Băm mật khẩu trước khi gán
+  }
+
+  // Hàm băm mật khẩu
+  String hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'email': email,
-      'password': password,
+      'password': _password,
       'name': name,
       'avatar_url': avatarUrl,
       'created_at': createdAt,
