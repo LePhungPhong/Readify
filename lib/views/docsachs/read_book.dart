@@ -102,7 +102,13 @@ class _ReadingPageState extends State<ReadingPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.black),
+            icon: Icon(
+              Icons.settings,
+              color:
+                  Theme.of(
+                    context,
+                  ).colorScheme.onSurface, // Sử dụng màu từ theme
+            ),
             onPressed: () {
               Navigator.push(
                 context,

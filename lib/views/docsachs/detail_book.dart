@@ -74,14 +74,19 @@ class _BookDetailPageState extends State<BookDetailPage> {
           Icon(
             icon,
             size: 18,
-            color: Colors.black54,
+            color: Theme.of(context).colorScheme.onBackground.withOpacity(
+              0.7,
+            ), // Using onBackground with opacity
           ), // Icon size can remain hardcoded or be part of a separate icon theme
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               "$label: $value",
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.black87,
+                color:
+                    Theme.of(
+                      context,
+                    ).colorScheme.onBackground, // Using onBackground
               ), // Sử dụng bodyMedium (mặc định 14)
             ),
           ),
@@ -93,25 +98,34 @@ class _BookDetailPageState extends State<BookDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDFDFD),
+      backgroundColor:
+          Theme.of(
+            context,
+          ).colorScheme.background, // Using theme background color
       appBar: AppBar(
-        backgroundColor: const Color(0xFFBD5A5A),
+        backgroundColor:
+            Theme.of(context).colorScheme.primary, // Using theme primary color
         // Sử dụng style từ Theme.of(context).appBarTheme.titleTextStyle hoặc titleLarge
         title: Text(
           "Readify",
           style:
-              Theme.of(
-                context,
-              ).appBarTheme.titleTextStyle?.copyWith(color: Colors.white) ??
-              Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: Colors.white),
+              Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimary,
+              ) ?? // Using onPrimary
+              Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onPrimary,
+              ), // Using onPrimary
         ),
         centerTitle: true,
-        leading: const BackButton(color: Colors.white),
+        leading: BackButton(
+          color: Theme.of(context).colorScheme.onPrimary,
+        ), // Using onPrimary
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
+            icon: Icon(
+              Icons.settings,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ), // Using onPrimary
             onPressed: () {
               Navigator.push(
                 context,
@@ -160,7 +174,8 @@ class _BookDetailPageState extends State<BookDetailPage> {
                         ? book.authors.join(", ")
                         : "Tác giả không rõ",
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.black54,
+                      color: Theme.of(context).colorScheme.onBackground
+                          .withOpacity(0.7), // Using onBackground with opacity
                     ), // Sử dụng bodyMedium (mặc định 14)
                   ),
                   const SizedBox(height: 10),
@@ -171,7 +186,9 @@ class _BookDetailPageState extends State<BookDetailPage> {
                         Icons.star,
                         color:
                             index < 4
-                                ? const Color(0xFFBD5A5A)
+                                ? Theme.of(context)
+                                    .colorScheme
+                                    .primary // Using primary for stars
                                 : Colors.grey[300],
                         size: 18, // Icon size
                       );
@@ -238,7 +255,10 @@ class _BookDetailPageState extends State<BookDetailPage> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFBD5A5A),
+                          backgroundColor:
+                              Theme.of(
+                                context,
+                              ).colorScheme.primary, // Using primary color
                           padding: const EdgeInsets.symmetric(
                             horizontal: 40,
                             vertical: 12,
@@ -250,7 +270,10 @@ class _BookDetailPageState extends State<BookDetailPage> {
                           style: Theme.of(
                             context,
                           ).textTheme.bodyLarge?.copyWith(
-                            color: Colors.white,
+                            color:
+                                Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary, // Using onPrimary
                           ), // Sử dụng bodyLarge (mặc định 16)
                         ),
                       ),
@@ -284,7 +307,10 @@ class _BookDetailPageState extends State<BookDetailPage> {
                         },
                         icon: Icon(
                           _isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: const Color(0xFFBD5A5A),
+                          color:
+                              Theme.of(
+                                context,
+                              ).colorScheme.primary, // Using primary color
                           size: 28, // Icon size
                         ),
                       ),
@@ -297,7 +323,10 @@ class _BookDetailPageState extends State<BookDetailPage> {
                       "Giới thiệu sách",
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFFBD5A5A),
+                        color:
+                            Theme.of(
+                              context,
+                            ).colorScheme.primary, // Using primary color
                       ), // Sử dụng titleMedium (mặc định 16)
                     ),
                   ),
@@ -310,7 +339,10 @@ class _BookDetailPageState extends State<BookDetailPage> {
                         : "Không có mô tả.",
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       height: 1.6,
-                      color: Colors.black87,
+                      color:
+                          Theme.of(
+                            context,
+                          ).colorScheme.onBackground, // Using onBackground
                     ), // Sử dụng bodyMedium (mặc định 14)
                     textAlign: TextAlign.justify,
                   ),
@@ -319,11 +351,17 @@ class _BookDetailPageState extends State<BookDetailPage> {
                     "Đánh giá và bình luận",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFFBD5A5A),
+                      color:
+                          Theme.of(
+                            context,
+                          ).colorScheme.primary, // Using primary color
                     ), // Sử dụng titleMedium (mặc định 16)
                   ),
                   const SizedBox(height: 10),
-                  RatingBarWidget(bookId: widget.bookId, user: widget.user),
+                  RatingBarWidget(
+                    bookId: widget.bookId,
+                    user: widget.user,
+                  ), // Passing primary color to RatingBarWidget
                   const SizedBox(height: 30),
                 ],
               ),

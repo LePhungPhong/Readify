@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:readify/main.dart';
 import 'package:readify/views/signIn_signUp/Login_Signup.dart';
-import 'package:readify/main.dart'; // import thêm để dùng themeNotifier, languageNotifier, fontSizeNotifier
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -10,17 +10,24 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  static const Color mainColor = Color(0xFFB74F4F);
+  // static const Color mainColor = Color(0xFFB74F4F); // Remove this line
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: colorScheme.background, // Use background color
       appBar: AppBar(
-        title: const Text('Cài Đặt'),
+        title: Text(
+          'Cài Đặt',
+          style: TextStyle(
+            color: colorScheme.onPrimary,
+          ), // Text color on primary
+        ),
         centerTitle: true,
-        backgroundColor: mainColor,
-        foregroundColor: Colors.white,
+        backgroundColor: colorScheme.primary, // Use primary color
+        foregroundColor: colorScheme.onPrimary, // Icon/text color on primary
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -28,12 +35,15 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSectionCard(
             icon: Icons.brightness_6,
             title: 'Chế độ sáng/tối',
+            context: context, // Pass context to _buildSectionCard
             child: ValueListenableBuilder<ThemeMode>(
               valueListenable: themeNotifier,
               builder: (context, currentTheme, _) {
                 return Switch(
                   value: currentTheme == ThemeMode.dark,
-                  activeColor: mainColor,
+                  activeColor:
+                      colorScheme
+                          .primary, // Use primary color for active switch
                   onChanged: (value) {
                     themeNotifier.value =
                         value ? ThemeMode.dark : ThemeMode.light;
@@ -46,21 +56,34 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSectionCard(
             icon: Icons.language,
             title: 'Ngôn ngữ',
+            context: context, // Pass context
             child: ValueListenableBuilder<String>(
               valueListenable: languageNotifier,
               builder: (context, currentLanguage, _) {
                 return DropdownButton<String>(
                   value: currentLanguage,
-                  icon: const Icon(Icons.arrow_drop_down),
+                  icon: Icon(
+                    Icons.arrow_drop_down,
+                    color: colorScheme.onSurface,
+                  ), // Use onSurface for dropdown icon
                   onChanged: (value) {
                     if (value != null) languageNotifier.value = value;
                   },
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: 'Tiếng Việt',
-                      child: Text('Tiếng Việt'),
+                      child: Text(
+                        'Tiếng Việt',
+                        style: TextStyle(color: colorScheme.onSurface),
+                      ),
                     ),
-                    DropdownMenuItem(value: 'English', child: Text('English')),
+                    DropdownMenuItem(
+                      value: 'English',
+                      child: Text(
+                        'English',
+                        style: TextStyle(color: colorScheme.onSurface),
+                      ),
+                    ),
                   ],
                 );
               },
@@ -70,6 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildSectionCard(
             icon: Icons.format_size,
             title: 'Cỡ chữ',
+            context: context, // Pass context
             child: ValueListenableBuilder<double>(
               valueListenable: fontSizeNotifier,
               builder: (context, currentFontSize, _) {
@@ -82,14 +106,19 @@ class _SettingsPageState extends State<SettingsPage> {
                       max: 28,
                       divisions: 8,
                       label: currentFontSize.toStringAsFixed(0),
-                      activeColor: mainColor,
+                      activeColor:
+                          colorScheme
+                              .primary, // Use primary color for active slider
                       onChanged: (value) {
                         fontSizeNotifier.value = value;
                       },
                     ),
                     Text(
                       'Cỡ hiện tại: ${currentFontSize.toStringAsFixed(0)}',
-                      style: TextStyle(fontSize: 14, color: mainColor),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colorScheme.primary,
+                      ), // Use primary for text color
                     ),
                   ],
                 );
@@ -98,23 +127,31 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const SizedBox(height: 32),
           ElevatedButton.icon(
-            icon: const Icon(Icons.logout),
-            label: const Text('Đăng Xuất'),
+            icon: Icon(
+              Icons.logout,
+              color: colorScheme.onPrimary,
+            ), // Icon color on primary
+            label: Text(
+              'Đăng Xuất',
+              style: TextStyle(color: colorScheme.onPrimary),
+            ), // Text color on primary
             style: ElevatedButton.styleFrom(
-              backgroundColor: mainColor,
-              foregroundColor: Colors.white,
+              backgroundColor:
+                  colorScheme.error, // Use error color for logout button
+              foregroundColor: colorScheme.onError, // Text/icon color on error
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               elevation: 5,
-              shadowColor: Colors.redAccent.withOpacity(0.5),
+              shadowColor: colorScheme.shadow.withOpacity(
+                0.5,
+              ), // Use shadow color
             ),
             onPressed: () {
-              Navigator.pushAndRemoveUntil(
+              Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const LoginSignup()),
-                (route) => false,
+                MaterialPageRoute(builder: (context) => LoginSignup()),
               );
             },
           ),
@@ -127,16 +164,23 @@ class _SettingsPageState extends State<SettingsPage> {
     required IconData icon,
     required String title,
     required Widget child,
+    required BuildContext context, // Add context here
   }) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: colorScheme.surface, // Use surface color for the card background
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: mainColor),
+            Icon(
+              icon,
+              color: colorScheme.primary,
+            ), // Use primary color for card icons
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -144,9 +188,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface, // Text color on surface
                     ),
                   ),
                   const SizedBox(height: 8),

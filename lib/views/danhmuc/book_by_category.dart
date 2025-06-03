@@ -91,8 +91,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
   }
 
   Widget _buildBookGridItem(Book book) {
-    final textTheme =
-        Theme.of(context).textTheme; // Access the theme's text styles
+    final textTheme = Theme.of(context).textTheme;
+    final ColorScheme colorScheme =
+        Theme.of(context).colorScheme; // Lấy ColorScheme
 
     return GestureDetector(
       onTap: () {
@@ -116,11 +117,14 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                 width: double.infinity,
                 errorBuilder:
                     (context, error, stackTrace) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(
+                      color:
+                          colorScheme.surfaceVariant, // Sử dụng surfaceVariant
+                      child: Icon(
                         Icons.broken_image,
                         size: 48,
-                        color: Colors.grey,
+                        color:
+                            colorScheme
+                                .onSurfaceVariant, // Sử dụng onSurfaceVariant
                       ),
                     ),
               ),
@@ -130,8 +134,8 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
           Text(
             book.title ?? 'Không có tiêu đề',
             style: textTheme.titleSmall?.copyWith(
-              color: Colors.black87,
-            ), // Apply titleSmall
+              color: colorScheme.onSurface, // Sử dụng onSurface
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -141,8 +145,8 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                 ? book.authors.join(", ")
                 : 'Tác giả không rõ',
             style: textTheme.bodyMedium?.copyWith(
-              color: Colors.grey,
-            ), // Apply bodyMedium
+              color: colorScheme.onSurfaceVariant, // Sử dụng onSurfaceVariant
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -153,25 +157,31 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme =
-        Theme.of(context).textTheme; // Access the theme's text styles
+    final textTheme = Theme.of(context).textTheme;
+    final ColorScheme colorScheme =
+        Theme.of(context).colorScheme; // Lấy ColorScheme
 
     return Scaffold(
+      backgroundColor: colorScheme.background, // Sử dụng màu nền từ theme
       body:
           _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(
+                child: CircularProgressIndicator(color: colorScheme.primary),
+              ) // Sử dụng primary color
               : CustomScrollView(
                 controller: _scrollController,
                 slivers: [
                   SliverAppBar(
                     expandedHeight: 200,
                     pinned: true,
+                    backgroundColor:
+                        colorScheme.primary, // Sử dụng primary color
                     flexibleSpace: FlexibleSpaceBar(
                       title: Text(
                         widget.topic.toUpperCase(),
                         style: textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                        ), // Apply headlineMedium
+                          color: colorScheme.onPrimary, // Sử dụng onPrimary
+                        ),
                       ),
                       centerTitle: true,
                       background: Stack(
@@ -182,29 +192,31 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                             fit: BoxFit.cover,
                             errorBuilder:
                                 (context, error, stackTrace) => Container(
-                                  color: Colors.grey[300],
-                                  child: const Icon(
+                                  color:
+                                      colorScheme
+                                          .surfaceVariant, // Sử dụng surfaceVariant
+                                  child: Icon(
                                     Icons.broken_image,
                                     size: 48,
+                                    color:
+                                        colorScheme
+                                            .onSurfaceVariant, // Sử dụng onSurfaceVariant
                                   ),
                                 ),
                           ),
-                          Container(color: Colors.black.withOpacity(0.4)),
+                          Container(
+                            color: colorScheme.scrim.withOpacity(0.4),
+                          ), // Sử dụng scrim color
                         ],
                       ),
                     ),
                     leading: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: colorScheme.onPrimary,
+                      ), // Sử dụng onPrimary
                       onPressed: () => Navigator.pop(context),
                     ),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.search, color: Colors.white),
-                        onPressed: () {
-                          // TODO: xử lý tìm kiếm
-                        },
-                      ),
-                    ],
                   ),
                   SliverToBoxAdapter(
                     child: Padding(
@@ -215,8 +227,9 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                           Text(
                             'Sách (${_controller.totalCount ?? _books.length})',
                             style: textTheme.titleLarge?.copyWith(
-                              color: const Color(0xFFBD5A5A),
-                            ), // Apply titleLarge
+                              color:
+                                  colorScheme.primary, // Sử dụng primary color
+                            ),
                           ),
                           const SizedBox(height: 16),
                           GridView.builder(
@@ -235,14 +248,25 @@ class _BooksByCategoryPageState extends State<BooksByCategoryPage> {
                                     _buildBookGridItem(_books[index]),
                           ),
                           if (_isLoadingMore)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              child: Center(child: CircularProgressIndicator()),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: colorScheme.primary,
+                                ),
+                              ), // Sử dụng primary color
                             ),
                           if (!_hasMore && _books.isNotEmpty)
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              child: Center(child: Text('Đã tải hết sách')),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: Text(
+                                  'Đã tải hết sách',
+                                  style: TextStyle(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ), // Sử dụng onSurfaceVariant
                             ),
                         ],
                       ),
