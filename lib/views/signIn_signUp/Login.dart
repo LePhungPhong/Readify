@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readify/controllers/Phong/AuthService.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:readify/views/settings/setting.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,7 +40,7 @@ class _LoginState extends State<Login> {
       if (user != null) {
         // Lưu ID người dùng đang đăng nhập
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setInt('user_id', user.id!);
+        await prefs.setInt('user_id', user.id);
 
         ScaffoldMessenger.of(
           context,
