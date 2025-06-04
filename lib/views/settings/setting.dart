@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/views/danhmuc/book_list_view.dart';
+import 'package:readify/views/docsachs/search_book.dart';
 import 'package:readify/views/signIn_signUp/Login_Signup.dart';
 import 'settings_page.dart'; // import SettingsPage
 import 'package:readify/views/about_page/user_info_screen.dart';
@@ -28,6 +29,21 @@ class HomePage extends StatelessWidget {
       backgroundColor: colorScheme.primary, // Use primary color
       foregroundColor: colorScheme.onPrimary, // Use onPrimary color
       actions: [
+        IconButton(
+          icon: Icon(
+            Icons.search,
+            color: colorScheme.onPrimary,
+          ), // Use onPrimary color
+          tooltip: 'Tìm kiếm sách',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SearchBookPage(user: user),
+              ),
+            );
+          },
+        ),
         IconButton(
           icon: Icon(
             Icons.account_circle,
