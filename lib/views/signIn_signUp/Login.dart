@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readify/controllers/Phong/AuthService.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:readify/models/Phong/user_model.dart';
 import 'package:readify/views/settings/setting.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -16,9 +15,26 @@ class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
-
   bool _obscureText = true;
   bool _isLoading = false;
+  bool _rememberMe = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final credentials = await _authService.getSavedCredentials();
+    if (credentials != null) {
+      setState(() {
+        _emailController.text = credentials['email']!;
+        _passwordController.text = credentials['password']!; // Mật khẩu gốc
+        _rememberMe = true;
+      });
+    }
+  }
 
   void _handleLogin() async {
     final email = _emailController.text.trim();
@@ -34,22 +50,22 @@ class _LoginState extends State<Login> {
     setState(() => _isLoading = true);
 
     try {
-      final user = await _authService.login(email, password);
+      final user = await _authService.login(
+        email,
+        password,
+        rememberMe: _rememberMe,
+      );
 
       setState(() => _isLoading = false);
 
       if (user != null) {
-        // Lưu ID người dùng đang đăng nhập
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setInt('user_id', user.id!);
-
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Xin chào, ${user.name}!')));
 
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => HomePage(user: user)),
+          MaterialPageRoute(builder: (context) => HomePage(user: user)),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -65,6 +81,36 @@ class _LoginState extends State<Login> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Đăng nhập thất bại: $e')));
+    }
+  }
+
+  void _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _authService.signInWithGoogle();
+
+      setState(() => _isLoading = false);
+
+      if (user != null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Xin chào, ${user.name}!')));
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage(user: user)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đăng nhập bằng Google thất bại.')),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đăng nhập bằng Google thất bại: $e')),
+      );
     }
   }
 
@@ -159,7 +205,7 @@ class _LoginState extends State<Login> {
             ),
             const SizedBox(height: 20),
             Text(
-              'Password',
+              'Mật khẩu',
               style: GoogleFonts.roboto(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -192,18 +238,33 @@ class _LoginState extends State<Login> {
               ),
             ),
             const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: _handleForgotPassword,
-                child: Text(
-                  "Quên mật khẩu?",
-                  style: GoogleFonts.roboto(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _rememberMe,
+                      onChanged:
+                          (value) => setState(() => _rememberMe = value!),
+                    ),
+                    Text(
+                      'Nhớ mật khẩu',
+                      style: GoogleFonts.roboto(fontSize: 14),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: _handleForgotPassword,
+                  child: Text(
+                    "Quên mật khẩu?",
+                    style: GoogleFonts.roboto(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
             const SizedBox(height: 30),
             Center(
@@ -223,13 +284,49 @@ class _LoginState extends State<Login> {
                       _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
-                            "Login",
+                            "Đăng nhập",
                             style: GoogleFonts.roboto(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: _isLoading ? null : _handleGoogleSignIn,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: const BorderSide(
+                      color: Color.fromARGB(255, 189, 90, 90),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.network(
+                        'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png',
+                        height: 24,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Đăng nhập bằng Google',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: const Color.fromARGB(255, 189, 90, 90),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -253,5 +350,12 @@ class _LoginState extends State<Login> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

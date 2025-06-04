@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readify/controllers/Phong/AuthService.dart';
 import 'package:readify/models/Phong/user_model.dart';
+import 'package:readify/views/settings/setting.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -31,7 +32,7 @@ class _RegisterState extends State<Register> {
       final name = _usernameController.text.trim();
       final avatarUrl =
           _avatarUrlController.text.trim().isEmpty
-              ? '<a href="https://example.com/default_avatar.png">https://example.com/default_avatar.png</a>'
+              ? 'https://example.com/default_avatar.png'
               : _avatarUrlController.text.trim();
 
       setState(() => _isLoading = true);
@@ -65,6 +66,37 @@ class _RegisterState extends State<Register> {
           context,
         ).showSnackBar(SnackBar(content: Text('Đăng ký thất bại: $e')));
       }
+    }
+  }
+
+  Future<void> _registerWithGoogle() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _authService.registerWithGoogle();
+      setState(() => _isLoading = false);
+
+      if (user != null) {
+        // Nếu email đã tồn tại, `registerWithGoogle` sẽ trả về user hiện có
+        // Nếu email chưa tồn tại, `registerWithGoogle` sẽ tạo tài khoản mới và trả về user
+        // Trong cả hai trường hợp, chúng ta có thể chuyển hướng đến HomePage
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đăng ký bằng Google thành công!')),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage(user: user)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đăng ký bằng Google thất bại.')),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đăng ký bằng Google thất bại: $e')),
+      );
     }
   }
 
@@ -136,7 +168,7 @@ class _RegisterState extends State<Register> {
                   return 'Vui lòng nhập email';
                 }
                 if (!RegExp(
-                  r'^[\w-.]+@([\w-]+.)+[\w-]{2,4}$',
+                  r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
                 ).hasMatch(value)) {
                   return 'Email không hợp lệ';
                 }
@@ -211,6 +243,42 @@ class _RegisterState extends State<Register> {
                                 color: Colors.white,
                               ),
                             ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Center(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: _isLoading ? null : _registerWithGoogle,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(
+                        color: Color.fromARGB(255, 189, 90, 90),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.network(
+                          'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png',
+                          height: 24,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Đăng ký bằng Google',
+                          style: GoogleFonts.roboto(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: const Color.fromARGB(255, 189, 90, 90),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
