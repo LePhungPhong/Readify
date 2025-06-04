@@ -118,8 +118,8 @@ Cụ thể, thư mục `lib/` chứa toàn bộ mã nguồn của ứng dụng v
 
 ## Hướng phát triển trong tương lai
 
-* Tối ưu giao diện để mượt mà và dễ tiếp cận hơn. [cite: 76]
-* Tích hợp thêm tiện ích chia sẻ sách. [cite: 76]
-* Phát triển tính năng nâng cấp tài khoản để mở khóa chức năng cao cấp. [cite: 77]
-* Phát triển ứng dụng trên đa nền tảng. [cite: 77]
-* Triển khai ứng dụng lên AppStore và GooglePlay. [cite: 77]
+* Tối ưu giao diện để mượt mà và dễ tiếp cận hơn.
+* Tích hợp thêm tiện ích chia sẻ sách.
+* Phát triển tính năng nâng cấp tài khoản để mở khóa chức năng cao cấp.
+* Phát triển ứng dụng trên đa nền tảng.
+* Triển khai ứng dụng lên AppStore và GooglePlay.
