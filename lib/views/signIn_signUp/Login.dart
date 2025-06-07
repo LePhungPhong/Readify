@@ -31,7 +31,7 @@ class _LoginState extends State<Login> {
     if (credentials != null) {
       setState(() {
         _emailController.text = credentials['email']!;
-        _passwordController.text = credentials['password']!; // Mật khẩu gốc
+        _passwordController.text = credentials['password']!;
         _rememberMe = true;
       });
     }

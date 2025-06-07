@@ -210,13 +210,13 @@ class _RegisterState extends State<Register> {
                   return null;
                 },
               ),
-              _buildLabel("Avatar URL (tùy chọn)"),
-              _buildTextField(
-                _avatarUrlController,
-                Icons.image,
-                "Nhập URL hình đại diện (nếu có)",
-                (value) => null,
-              ),
+              // _buildLabel("Avatar URL (tùy chọn)"),
+              // _buildTextField(
+              //   _avatarUrlController,
+              //   Icons.image,
+              //   "Nhập URL hình đại diện (nếu có)",
+              //   (value) => null,
+              // ),
               const SizedBox(height: 30),
               Center(
                 child: SizedBox(
